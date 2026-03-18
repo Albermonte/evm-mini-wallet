@@ -1,4 +1,4 @@
-import { isAddress, parseEther } from "viem";
+import { isAddress, parseUnits } from "viem";
 
 export function validateAddress(value: string): string | null {
   if (!value) return "Address is required";
@@ -6,11 +6,11 @@ export function validateAddress(value: string): string | null {
   return null;
 }
 
-export function validateAmount(value: string, balance?: bigint): string | null {
+export function validateAmount(value: string, balance?: bigint, decimals = 18): string | null {
   if (!value) return "Amount is required";
   let parsed: bigint;
   try {
-    parsed = parseEther(value);
+    parsed = parseUnits(value, decimals);
   } catch {
     return "Enter a valid positive amount";
   }

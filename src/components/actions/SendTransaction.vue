@@ -174,7 +174,11 @@ async function setMax() {
 
 function handleSend() {
   recipientError.value = validateAddress(recipient.value);
-  amountError.value = validateAmount(amount.value, currentBalance.value ?? undefined);
+  amountError.value = validateAmount(
+    amount.value,
+    currentBalance.value ?? undefined,
+    currentDecimals.value,
+  );
   if (recipientError.value || amountError.value) return;
 
   submittedChainId.value = chainId.value ?? null;
@@ -279,7 +283,7 @@ const showTokenPicker = ref(false);
 </script>
 
 <template>
-  <BaseCard title="Send Transaction">
+  <BaseCard title="Send">
     <div class="flex flex-col gap-4">
       <!-- Token selector -->
       <div class="flex flex-col gap-1.5">
@@ -369,26 +373,26 @@ const showTokenPicker = ref(false);
         spellcheck="false"
       />
 
-      <div class="flex items-end gap-2">
-        <div class="flex-1">
-          <BaseInput
-            v-model="amount"
-            label="Amount"
-            :placeholder="`0.0 ${currentSymbol}`"
-            :error="amountError"
-            :disabled="isSending || isConfirming"
-            inputmode="decimal"
-          />
+      <div>
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Amount</label>
+          <button
+            type="button"
+            class="rounded px-1.5 py-0.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
+            :disabled="isSending || isConfirming || currentBalance === null"
+            @click="setMax"
+          >
+            Max
+          </button>
         </div>
-        <button
-          type="button"
-          class="mb-[2px] rounded-lg px-2 py-2.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
-          :class="{ 'mb-[22px]': amountError }"
-          :disabled="isSending || isConfirming || currentBalance === null"
-          @click="setMax"
-        >
-          Max
-        </button>
+        <BaseInput
+          v-model="amount"
+          :placeholder="`0.0 ${currentSymbol}`"
+          :error="amountError"
+          :disabled="isSending || isConfirming"
+          inputmode="decimal"
+          class="mt-1.5"
+        />
       </div>
 
       <div class="flex items-center gap-3">
