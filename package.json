@@ -1,0 +1,38 @@
+{
+  "name": "evm-mini-wallet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vue-tsc --noEmit && vp build",
+    "preview": "vp preview",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@tanstack/vue-query": "^5.92.10",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vueuse/core": "^14.2.1",
+    "@wagmi/vue": "^0.5.0",
+    "lucide-vue-next": "^0.577.0",
+    "motion-v": "^2.0.1",
+    "reka-ui": "^2.9.2",
+    "tailwindcss": "^4.2.1",
+    "viem": "^2.47.5",
+    "vue": "^3.5.30"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^29.0.0",
+    "typescript": "~5.9.3",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.1.12",
+    "vite-plus": "0.1.12",
+    "vue-tsc": "^3.2.6"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.1.12",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.12"
+  },
+  "packageManager": "pnpm@10.32.1"
+}

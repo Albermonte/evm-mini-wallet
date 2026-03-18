@@ -1,0 +1,55 @@
+<script setup lang="ts">
+import { computed, useAttrs, useId } from "vue";
+
+defineOptions({ inheritAttrs: false });
+
+const props = defineProps<{
+  label?: string;
+  error?: string | null;
+  placeholder?: string;
+  disabled?: boolean;
+}>();
+
+const model = defineModel<string>({ default: "" });
+const attrs = useAttrs();
+const generatedId = useId();
+
+const inputId = computed(() => (attrs.id as string | undefined) ?? generatedId);
+const describedBy = computed(() => {
+  const ids = [
+    attrs["aria-describedby"] as string | undefined,
+    props.error ? `${inputId.value}-error` : undefined,
+  ].filter(Boolean);
+  return ids.length > 0 ? ids.join(" ") : undefined;
+});
+</script>
+
+<template>
+  <div class="flex flex-col gap-1.5">
+    <label
+      v-if="label"
+      :for="inputId"
+      class="text-sm font-medium text-surface-700 dark:text-surface-300"
+    >
+      {{ label }}
+    </label>
+    <input
+      v-model="model"
+      v-bind="attrs"
+      :id="inputId"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="describedBy"
+      :class="[
+        'w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm transition-colors outline-none dark:bg-surface-900',
+        error
+          ? 'border-red-400 focus:border-red-500 dark:border-red-500'
+          : 'border-surface-200 focus:border-primary-500 dark:border-surface-700 dark:focus:border-primary-400',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
+        'placeholder:text-surface-400 dark:placeholder:text-surface-500',
+      ]"
+    />
+    <p v-if="error" :id="`${inputId}-error`" class="text-xs text-red-500">{{ error }}</p>
+  </div>
+</template>
