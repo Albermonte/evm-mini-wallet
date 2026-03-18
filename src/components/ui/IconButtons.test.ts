@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { mount } from "@vue/test-utils";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { defineComponent, ref } from "vue";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { TooltipProvider } from "reka-ui";
 
 afterEach(() => {
@@ -11,10 +11,12 @@ afterEach(() => {
 });
 
 describe("icon-only controls", () => {
-  it("labels the theme toggle button", async () => {
+  it("labels the theme toggle button and updates the icon state", async () => {
+    const isDark = ref(false);
+
     vi.doMock("../../composables/useTheme", () => ({
       useTheme: () => ({
-        isDark: ref(false),
+        isDark,
         toggle: vi.fn(),
       }),
     }));
@@ -23,9 +25,19 @@ describe("icon-only controls", () => {
     const wrapper = mount(ThemeToggle);
 
     expect(wrapper.get("button").attributes("aria-label")).toBe("Switch to dark mode");
+    expect(wrapper.html()).toContain("moon");
+
+    isDark.value = true;
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.get("button").attributes("aria-label")).toBe("Switch to light mode");
+    expect(wrapper.html()).toContain("sun");
   });
 
-  it("labels the account info copy button", async () => {
+  it("labels the account info copy button and triggers copy side effects", async () => {
+    const copy = vi.fn();
+    const addToast = vi.fn();
+
     vi.doMock("@wagmi/vue", () => ({
       useConnection: () => ({
         address: ref("0x1111111111111111111111111111111111111111"),
@@ -35,13 +47,13 @@ describe("icon-only controls", () => {
     vi.doMock("../../composables/useClipboard", () => ({
       useClipboard: () => ({
         copied: ref(false),
-        copy: vi.fn(),
+        copy,
       }),
     }));
 
     vi.doMock("../../composables/useToast", () => ({
       useToast: () => ({
-        addToast: vi.fn(),
+        addToast,
       }),
     }));
 
@@ -53,7 +65,11 @@ describe("icon-only controls", () => {
     });
 
     const wrapper = mount(Wrapper);
-    const copyButton = wrapper.find('button[aria-label="Copy wallet address"]');
-    expect(copyButton.exists()).toBe(true);
+    const copyButton = wrapper.get('button[aria-label="Copy wallet address"]');
+
+    await copyButton.trigger("click");
+
+    expect(copy).toHaveBeenCalledWith("0x1111111111111111111111111111111111111111");
+    expect(addToast).toHaveBeenCalledWith("Address copied", "success");
   });
 });
