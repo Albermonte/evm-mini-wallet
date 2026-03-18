@@ -21,13 +21,13 @@ const { data: balance, isLoading } = useBalance({
 
     <template v-else-if="balance">
       <p
-        class="max-w-full text-center font-display text-5xl font-bold tracking-tight text-surface-900 sm:text-6xl dark:text-surface-100"
+        class="max-w-full text-center font-display text-5xl font-extrabold tracking-tighter text-surface-900 sm:text-6xl dark:text-white"
         style="overflow-wrap: break-word"
       >
         {{ formatBalance(balance.value) }}
       </p>
       <div
-        class="flex items-center gap-1.5 rounded-full bg-surface-100 px-3 py-1 dark:bg-surface-800"
+        class="flex items-center gap-1.5 rounded-full border border-surface-200 px-3 py-1 dark:border-surface-700"
       >
         <img
           :src="getChainLogo(chainId ?? 1)"

@@ -338,7 +338,7 @@ function handleScanned(value: string) {
         <PopoverTrigger as-child>
           <button
             type="button"
-            class="flex w-full items-center gap-2 rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 dark:border-surface-700 dark:bg-surface-900 dark:hover:bg-surface-800"
+            class="flex w-full items-center gap-2 rounded-lg border border-surface-300 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 dark:border-surface-600 dark:bg-surface-900 dark:hover:bg-surface-800"
             :disabled="isSending || isConfirming"
           >
             <TokenLogo :urls="currentLogoUrls" :symbol="currentSymbol" size="h-6 w-6" />
@@ -354,7 +354,7 @@ function handleScanned(value: string) {
 
         <PopoverPortal>
           <PopoverContent
-            class="popover-content z-30 max-h-60 w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-xl border border-surface-200 bg-white py-1 shadow-lg dark:border-surface-700 dark:bg-surface-900"
+            class="popover-content z-[60] max-h-60 w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-lg border border-surface-300 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-900"
             :side-offset="4"
             align="start"
           >
@@ -364,7 +364,7 @@ function handleScanned(value: string) {
               class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
               :class="
                 !isTokenSend
-                  ? 'text-primary-600 dark:text-primary-400 font-medium'
+                  ? 'text-surface-900 dark:text-white font-semibold'
                   : 'text-surface-700 dark:text-surface-300'
               "
               @click="
@@ -389,7 +389,7 @@ function handleScanned(value: string) {
               class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
               :class="
                 selectedTokenAddress === tb.token.address
-                  ? 'text-primary-600 dark:text-primary-400 font-medium'
+                  ? 'text-surface-900 dark:text-white font-semibold'
                   : 'text-surface-700 dark:text-surface-300'
               "
               @click="
@@ -425,7 +425,7 @@ function handleScanned(value: string) {
         />
         <button
           type="button"
-          class="mt-px flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-500 transition-colors hover:bg-surface-50 hover:text-surface-700 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-surface-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="mt-px flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-surface-300 bg-white text-surface-500 transition-colors hover:bg-surface-50 hover:text-surface-900 dark:border-surface-600 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="isSending || isConfirming"
           aria-label="Scan QR code"
           @click="showScanner = true"
@@ -442,7 +442,7 @@ function handleScanned(value: string) {
         <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Amount</label>
         <button
           type="button"
-          class="rounded px-1.5 py-0.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
+          class="rounded px-1.5 py-0.5 text-xs font-semibold text-surface-900 hover:bg-surface-100 dark:text-white dark:hover:bg-surface-800"
           :disabled="isSending || isConfirming || currentBalance === null"
           @click="setMax"
         >
@@ -479,7 +479,7 @@ function handleScanned(value: string) {
 
     <div
       v-if="txStatus"
-      class="flex items-center justify-between rounded-xl bg-surface-100 px-4 py-3 dark:bg-surface-800/50"
+      class="flex items-center justify-between rounded-lg border border-surface-200 px-4 py-3 dark:border-surface-700"
     >
       <StatusBadge :status="txStatus" />
       <a
@@ -487,7 +487,7 @@ function handleScanned(value: string) {
         :href="explorerUrl"
         target="_blank"
         rel="noopener"
-        class="text-xs text-primary-600 hover:underline dark:text-primary-400"
+        class="text-xs font-medium text-surface-900 underline decoration-surface-400 hover:decoration-surface-900 dark:text-white dark:decoration-surface-500 dark:hover:decoration-white"
       >
         View on explorer
       </a>

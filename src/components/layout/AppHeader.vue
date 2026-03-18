@@ -9,7 +9,7 @@ const { isConnected } = useConnection();
 
 <template>
   <header
-    class="flex items-center justify-between border-b border-surface-200 px-3 py-2.5 sm:px-4 sm:py-3 dark:border-surface-800"
+    class="flex items-center justify-between border-b border-surface-300 px-3 py-2.5 sm:px-4 sm:py-3 dark:border-surface-700"
   >
     <!-- Left: Theme toggle -->
     <div class="flex items-center">

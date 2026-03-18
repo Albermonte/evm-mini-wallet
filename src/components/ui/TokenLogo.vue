@@ -45,7 +45,7 @@ watch(
   />
   <div
     v-else
-    class="flex shrink-0 items-center justify-center rounded-full bg-surface-100 text-xs font-bold text-surface-600 dark:bg-surface-800 dark:text-surface-300"
+    class="flex shrink-0 items-center justify-center rounded-full bg-surface-200 text-xs font-bold text-surface-700 dark:bg-surface-700 dark:text-surface-200"
     :class="size ?? 'h-8 w-8'"
   >
     {{ symbol.slice(0, 2) }}

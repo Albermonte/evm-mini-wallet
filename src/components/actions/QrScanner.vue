@@ -39,7 +39,7 @@ function handleClose() {
         <div class="absolute inset-0 bg-black/50" />
         <!-- Clear cutout -->
         <div
-          class="relative z-10 h-64 w-64 rounded-2xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
+          class="relative z-10 h-64 w-64 rounded-lg border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
         />
       </div>
 
@@ -56,7 +56,7 @@ function handleClose() {
         <p class="text-center text-white">{{ error }}</p>
         <button
           type="button"
-          class="rounded-xl bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
+          class="rounded-lg bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
           @click="handleClose"
         >
           Close

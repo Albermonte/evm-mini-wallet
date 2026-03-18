@@ -30,7 +30,7 @@ function handleSwitch(id: number) {
   <PopoverRoot v-model:open="open">
     <PopoverTrigger as-child>
       <button
-        class="flex min-h-[36px] items-center gap-1.5 rounded-lg border border-surface-200 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800"
+        class="flex min-h-[36px] items-center gap-1.5 rounded-md border border-surface-300 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-100 dark:border-surface-600 dark:text-surface-300 dark:hover:bg-surface-800"
       >
         <img
           :src="getChainLogo(chainId ?? 1)"
@@ -44,7 +44,7 @@ function handleSwitch(id: number) {
 
     <PopoverPortal>
       <PopoverContent
-        class="popover-content z-50 w-48 rounded-xl border border-surface-200 bg-white py-1 shadow-lg dark:border-surface-700 dark:bg-surface-900"
+        class="popover-content z-50 w-48 rounded-lg border border-surface-300 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-900"
         :side-offset="4"
         align="end"
       >
@@ -54,7 +54,7 @@ function handleSwitch(id: number) {
           class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800 dark:active:bg-surface-700"
           :class="
             chain.id === chainId
-              ? 'text-primary-600 dark:text-primary-400 font-medium'
+              ? 'text-surface-900 dark:text-white font-semibold'
               : 'text-surface-700 dark:text-surface-300'
           "
           @click="handleSwitch(chain.id)"

@@ -65,7 +65,7 @@ watch([chainId, address], fetchBalances);
         v-for="tb in tokenBalances"
         :key="tb.token.address"
         v-show="succeededLogos.has(tb.token.address) || expanded"
-        class="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
+        class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
       >
         <TokenLogo
           :urls="tb.logoUrls"
@@ -89,7 +89,7 @@ watch([chainId, address], fetchBalances);
 
       <button
         v-if="extraTokens.length > 0"
-        class="mt-1 w-full rounded-xl py-2 text-sm font-medium text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600 dark:text-surface-500 dark:hover:bg-surface-800/50 dark:hover:text-surface-300"
+        class="mt-1 w-full rounded-lg py-2 text-sm font-medium text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600 dark:text-surface-500 dark:hover:bg-surface-800/50 dark:hover:text-surface-300"
         @click="expanded = !expanded"
       >
         {{

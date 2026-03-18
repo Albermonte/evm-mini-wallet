@@ -189,14 +189,20 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
 <template>
   <div>
     <!-- Loading skeleton -->
-    <div v-if="isLoading && transactions.length === 0" class="flex flex-col gap-3">
-      <div v-for="i in 3" :key="i" class="flex items-center gap-3">
-        <div class="h-8 w-8 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700" />
-        <div class="flex-1">
-          <div class="h-4 w-28 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
-          <div class="mt-1 h-3 w-20 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
+    <div v-if="isLoading && transactions.length === 0" class="flex flex-col gap-1">
+      <div v-for="i in 5" :key="i" class="flex items-center gap-3 px-2 py-3.5">
+        <div class="h-8 w-8 shrink-0 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700" />
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <div class="h-5 w-14 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
+            <div class="h-5 w-16 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700" />
+          </div>
+          <div class="mt-1.5 h-4 w-36 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
         </div>
-        <div class="h-4 w-16 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
+        <div class="shrink-0 text-right">
+          <div class="ml-auto h-5 w-16 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
+          <div class="ml-auto mt-1.5 h-4 w-12 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
+        </div>
       </div>
     </div>
 
@@ -208,7 +214,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
         :href="getExplorerTxUrl(chainId, tx.hash)"
         target="_blank"
         rel="noopener"
-        class="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
+        class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
       >
         <!-- Action icon -->
         <div

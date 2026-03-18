@@ -78,18 +78,16 @@ const showSend = ref(false);
                 :transition="{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
               >
                 <TabsRoot default-value="tokens" class="pb-6">
-                  <TabsList
-                    class="mb-4 flex gap-1 rounded-xl bg-surface-100 p-1 dark:bg-surface-800"
-                  >
+                  <TabsList class="mb-4 flex border-b border-surface-200 dark:border-surface-800">
                     <TabsTrigger
                       value="tokens"
-                      class="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-surface-500 transition-all data-[state=active]:bg-white data-[state=active]:text-surface-900 data-[state=active]:shadow-sm dark:text-surface-400 dark:data-[state=active]:bg-surface-700 dark:data-[state=active]:text-surface-100"
+                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-surface-400 transition-all data-[state=active]:border-surface-900 data-[state=active]:text-surface-900 dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
                     >
                       Tokens
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      class="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-surface-500 transition-all data-[state=active]:bg-white data-[state=active]:text-surface-900 data-[state=active]:shadow-sm dark:text-surface-400 dark:data-[state=active]:bg-surface-700 dark:data-[state=active]:text-surface-100"
+                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-surface-400 transition-all data-[state=active]:border-surface-900 data-[state=active]:text-surface-900 dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
                     >
                       Activity
                     </TabsTrigger>
@@ -112,7 +110,7 @@ const showSend = ref(false);
           <DialogPortal>
             <DialogOverlay class="send-overlay fixed inset-0 z-50 bg-black/40" />
             <DialogContent
-              class="send-sheet fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border-t border-surface-200 bg-white px-4 pb-8 pt-4 shadow-xl sm:px-6 dark:border-surface-700 dark:bg-surface-900"
+              class="send-sheet fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-xl border-t border-surface-300 bg-white px-4 pb-8 pt-4 shadow-xl sm:px-6 dark:border-surface-600 dark:bg-surface-900"
             >
               <div class="mb-1 flex justify-center">
                 <div class="h-1 w-10 rounded-full bg-surface-200 dark:bg-surface-700" />

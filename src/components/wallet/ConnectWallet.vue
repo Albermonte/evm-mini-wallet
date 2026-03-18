@@ -57,14 +57,14 @@ function handleConnect(detail: EIP6963ProviderDetail) {
       <div class="mb-10 flex flex-col gap-2">
         <p
           v-if="providers.length === 0"
-          class="rounded-xl border border-dashed border-surface-300 px-4 py-8 text-center text-sm text-surface-500 dark:border-surface-600 dark:text-surface-400"
+          class="rounded-lg border border-dashed border-surface-400 px-4 py-8 text-center text-sm text-surface-500 dark:border-surface-500 dark:text-surface-400"
         >
           No wallet detected.
           <a
             href="https://metamask.io/download/"
             target="_blank"
             rel="noopener"
-            class="font-medium text-primary-600 hover:underline dark:text-primary-400"
+            class="font-medium text-surface-900 underline decoration-surface-400 hover:decoration-surface-900 dark:text-white dark:decoration-surface-500 dark:hover:decoration-white"
           >
             Install a wallet
           </a>
@@ -75,13 +75,13 @@ function handleConnect(detail: EIP6963ProviderDetail) {
           v-for="provider in providers"
           :key="provider.info.uuid"
           :disabled="isPending"
-          class="flex items-center gap-3 rounded-xl border border-surface-200 bg-white px-4 py-3.5 text-left text-sm font-medium text-surface-900 transition-all hover:border-primary-300 hover:bg-primary-50 disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-100 dark:hover:border-primary-600 dark:hover:bg-primary-900/20"
+          class="flex items-center gap-3 rounded-lg border border-surface-300 bg-white px-4 py-3.5 text-left text-sm font-medium text-surface-900 transition-all hover:border-surface-900 hover:bg-surface-50 disabled:opacity-50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:hover:border-white dark:hover:bg-surface-700"
           @click="handleConnect(provider)"
         >
-          <img :src="provider.info.icon" :alt="provider.info.name" class="h-9 w-9 rounded-xl" />
+          <img :src="provider.info.icon" :alt="provider.info.name" class="h-9 w-9 rounded-lg" />
           <span class="flex-1">{{ provider.info.name }}</span>
           <LoaderCircle v-if="isPending" class="h-4 w-4 animate-spin text-surface-400" />
-          <span v-else class="text-xs text-primary-600 dark:text-primary-400">Connect</span>
+          <span v-else class="text-xs font-semibold text-surface-900 dark:text-white">Connect</span>
         </button>
       </div>
 
@@ -92,7 +92,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
           <div
             v-for="chain in chains"
             :key="chain.id"
-            class="flex items-center gap-1.5 rounded-full bg-surface-100 px-2.5 py-1 dark:bg-surface-800"
+            class="flex items-center gap-1.5 rounded-full border border-surface-200 px-2.5 py-1 dark:border-surface-700"
           >
             <img :src="getChainLogo(chain.id)" :alt="chain.name" class="h-3.5 w-3.5 rounded-full" />
             <span class="text-[11px] font-medium text-surface-600 dark:text-surface-400">

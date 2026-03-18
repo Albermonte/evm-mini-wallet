@@ -19,7 +19,7 @@ const typeStyles = {
     :duration="toast.duration"
     :type="toast.type === 'error' ? 'foreground' : 'background'"
     :class="[
-      'toast-item flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-lg sm:w-auto sm:max-w-sm',
+      'toast-item flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium shadow-lg sm:w-auto sm:max-w-sm',
       typeStyles[toast.type],
     ]"
     @update:open="
