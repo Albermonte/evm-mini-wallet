@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useChainId, useConnect } from "@wagmi/vue";
+import { useChainId, useConnect, useSwitchChain } from "@wagmi/vue";
 import { injected } from "@wagmi/vue/connectors";
-import { Wallet, LoaderCircle } from "lucide-vue-next";
-import BaseButton from "../ui/BaseButton.vue";
-import BaseModal from "../ui/BaseModal.vue";
+import { LoaderCircle } from "lucide-vue-next";
 import { useToast } from "../../composables/useToast";
 import { useEip6963Providers, type EIP6963ProviderDetail } from "../../composables/useEip6963";
 import { isUserRejection } from "../../utils/validation";
+import { getChainLogo } from "../../utils/chains";
 
 const chainId = useChainId();
 const { connect, isPending } = useConnect();
+const { chains } = useSwitchChain();
 const { providers } = useEip6963Providers();
-const showModal = ref(false);
 const { addToast } = useToast();
 
 function handleConnect(detail: EIP6963ProviderDetail) {
@@ -29,9 +27,6 @@ function handleConnect(detail: EIP6963ProviderDetail) {
       chainId: chainId.value,
     },
     {
-      onSuccess() {
-        showModal.value = false;
-      },
       onError(err) {
         if (isUserRejection(err)) {
           addToast("Connection rejected", "info");
@@ -45,45 +40,67 @@ function handleConnect(detail: EIP6963ProviderDetail) {
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col items-center justify-center gap-6 px-5 py-10 sm:py-16">
-    <div class="text-center">
-      <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-100">
-        EVM Mini Wallet
-      </h1>
-      <p class="mt-2 text-surface-500 dark:text-surface-400">Connect your wallet to get started</p>
-    </div>
+  <div class="flex flex-1 flex-col items-center justify-center px-5 py-10 sm:py-16">
+    <div class="w-full max-w-sm">
+      <div class="mb-10 text-center">
+        <h1
+          class="font-display text-3xl font-bold tracking-tight text-surface-900 sm:text-4xl dark:text-surface-100"
+        >
+          EVM Mini Wallet
+        </h1>
+        <p class="mt-3 text-surface-500 dark:text-surface-400">
+          Manage and send tokens across multiple chains
+        </p>
+      </div>
 
-    <BaseButton variant="primary" class="px-8 py-3 text-base" @click="showModal = true">
-      <Wallet class="h-4 w-4" :stroke-width="2" />
-      Connect Wallet
-    </BaseButton>
-
-    <BaseModal v-model="showModal" title="Connect Wallet">
-      <div class="flex flex-col gap-2">
-        <p v-if="providers.length === 0" class="py-4 text-center text-sm text-surface-500">
+      <!-- Wallet providers inline -->
+      <div class="mb-10 flex flex-col gap-2">
+        <p
+          v-if="providers.length === 0"
+          class="rounded-xl border border-dashed border-surface-300 px-4 py-8 text-center text-sm text-surface-500 dark:border-surface-600 dark:text-surface-400"
+        >
           No wallet detected.
           <a
             href="https://metamask.io/download/"
             target="_blank"
             rel="noopener"
-            class="text-primary-600 hover:underline dark:text-primary-400"
+            class="font-medium text-primary-600 hover:underline dark:text-primary-400"
           >
-            Install MetaMask
+            Install a wallet
           </a>
+          to get started.
         </p>
 
         <button
           v-for="provider in providers"
           :key="provider.info.uuid"
           :disabled="isPending"
-          class="flex items-center gap-3 rounded-xl border border-surface-200 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-50 disabled:opacity-50 dark:border-surface-700 dark:text-surface-100 dark:hover:bg-surface-800"
+          class="flex items-center gap-3 rounded-xl border border-surface-200 bg-white px-4 py-3.5 text-left text-sm font-medium text-surface-900 transition-all hover:border-primary-300 hover:bg-primary-50 disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-100 dark:hover:border-primary-600 dark:hover:bg-primary-900/20"
           @click="handleConnect(provider)"
         >
-          <img :src="provider.info.icon" :alt="provider.info.name" class="h-8 w-8 rounded-lg" />
-          {{ provider.info.name }}
-          <LoaderCircle v-if="isPending" class="ml-auto h-4 w-4 animate-spin text-surface-400" />
+          <img :src="provider.info.icon" :alt="provider.info.name" class="h-9 w-9 rounded-xl" />
+          <span class="flex-1">{{ provider.info.name }}</span>
+          <LoaderCircle v-if="isPending" class="h-4 w-4 animate-spin text-surface-400" />
+          <span v-else class="text-xs text-primary-600 dark:text-primary-400">Connect</span>
         </button>
       </div>
-    </BaseModal>
+
+      <!-- Supported chains -->
+      <div class="flex flex-col items-center gap-2.5">
+        <span class="text-xs text-surface-400 dark:text-surface-500">Supported networks</span>
+        <div class="flex flex-wrap justify-center gap-2">
+          <div
+            v-for="chain in chains"
+            :key="chain.id"
+            class="flex items-center gap-1.5 rounded-full bg-surface-100 px-2.5 py-1 dark:bg-surface-800"
+          >
+            <img :src="getChainLogo(chain.id)" :alt="chain.name" class="h-3.5 w-3.5 rounded-full" />
+            <span class="text-[11px] font-medium text-surface-600 dark:text-surface-400">
+              {{ chain.name }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

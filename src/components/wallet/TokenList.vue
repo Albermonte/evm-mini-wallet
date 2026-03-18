@@ -4,7 +4,6 @@ import { useConnection, useChainId } from "@wagmi/vue";
 import { useTimeoutPoll } from "@vueuse/core";
 import { fetchBlockscoutTokens, type TokenWithBalance } from "../../utils/blockscout";
 import { formatBalance } from "../../utils/format";
-import BaseCard from "../ui/BaseCard.vue";
 import TokenLogo from "../ui/TokenLogo.vue";
 
 const { address } = useConnection();
@@ -47,7 +46,7 @@ watch([chainId, address], fetchBalances);
 </script>
 
 <template>
-  <BaseCard>
+  <div>
     <!-- Loading skeleton -->
     <div v-if="isLoading && tokenBalances.length === 0" class="flex flex-col gap-3">
       <div v-for="i in 3" :key="i" class="flex items-center gap-3">
@@ -66,7 +65,7 @@ watch([chainId, address], fetchBalances);
         v-for="tb in tokenBalances"
         :key="tb.token.address"
         v-show="succeededLogos.has(tb.token.address) || expanded"
-        class="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-50 dark:hover:bg-surface-800/50"
+        class="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
       >
         <TokenLogo
           :urls="tb.logoUrls"
@@ -90,7 +89,7 @@ watch([chainId, address], fetchBalances);
 
       <button
         v-if="extraTokens.length > 0"
-        class="mt-1 w-full rounded-xl py-2 text-xs font-medium text-surface-400 transition-colors hover:bg-surface-50 hover:text-surface-600 dark:text-surface-500 dark:hover:bg-surface-800/50 dark:hover:text-surface-300"
+        class="mt-1 w-full rounded-xl py-2 text-sm font-medium text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600 dark:text-surface-500 dark:hover:bg-surface-800/50 dark:hover:text-surface-300"
         @click="expanded = !expanded"
       >
         {{
@@ -102,11 +101,11 @@ watch([chainId, address], fetchBalances);
     </div>
 
     <!-- No tokens with balance -->
-    <p
-      v-else-if="!isLoading"
-      class="py-3 text-center text-sm text-surface-400 dark:text-surface-500"
-    >
-      No token balances found
-    </p>
-  </BaseCard>
+    <div v-else-if="!isLoading" class="flex flex-col items-center gap-1.5 py-8 text-center">
+      <p class="text-sm font-medium text-surface-500 dark:text-surface-400">No tokens yet</p>
+      <p class="text-xs text-surface-400 dark:text-surface-500">
+        Receive, swap, or bridge tokens to see them here
+      </p>
+    </div>
+  </div>
 </template>

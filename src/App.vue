@@ -1,15 +1,33 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { useConnection } from "@wagmi/vue";
-import { ToastProvider, TooltipProvider } from "reka-ui";
+import {
+  ToastProvider,
+  TooltipProvider,
+  DialogRoot,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+  TabsRoot,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "reka-ui";
+import { ArrowUpRight, X } from "lucide-vue-next";
+import { Motion } from "motion-v";
 import AppHeader from "./components/layout/AppHeader.vue";
 import ConnectWallet from "./components/wallet/ConnectWallet.vue";
 import BalanceDisplay from "./components/wallet/BalanceDisplay.vue";
 import TokenList from "./components/wallet/TokenList.vue";
 import SendTransaction from "./components/actions/SendTransaction.vue";
 import TransactionList from "./components/actions/TransactionList.vue";
+import BaseButton from "./components/ui/BaseButton.vue";
 import Toast from "./components/ui/Toast.vue";
 
 const { isConnected } = useConnection();
+const showSend = ref(false);
 </script>
 
 <template>
@@ -31,15 +49,90 @@ const { isConnected } = useConnection();
             <ConnectWallet v-if="!isConnected" />
 
             <div v-else class="mx-auto flex w-full max-w-lg flex-col px-3 sm:px-4">
-              <BalanceDisplay />
-              <div class="flex flex-col gap-3 sm:gap-4 pb-6">
-                <TokenList />
-                <SendTransaction />
-                <TransactionList />
-              </div>
+              <!-- Hero Balance -->
+              <Motion
+                :initial="{ opacity: 0, y: 24 }"
+                :animate="{ opacity: 1, y: 0 }"
+                :transition="{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
+              >
+                <BalanceDisplay />
+              </Motion>
+
+              <!-- Action Buttons -->
+              <Motion
+                class="flex justify-center gap-3 pb-6"
+                :initial="{ opacity: 0, y: 24 }"
+                :animate="{ opacity: 1, y: 0 }"
+                :transition="{ delay: 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
+              >
+                <BaseButton variant="primary" class="px-6" @click="showSend = true">
+                  <ArrowUpRight class="h-4 w-4" />
+                  Send
+                </BaseButton>
+              </Motion>
+
+              <!-- Tabs: Tokens / Activity -->
+              <Motion
+                :initial="{ opacity: 0, y: 24 }"
+                :animate="{ opacity: 1, y: 0 }"
+                :transition="{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
+              >
+                <TabsRoot default-value="tokens" class="pb-6">
+                  <TabsList
+                    class="mb-4 flex gap-1 rounded-xl bg-surface-100 p-1 dark:bg-surface-800"
+                  >
+                    <TabsTrigger
+                      value="tokens"
+                      class="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-surface-500 transition-all data-[state=active]:bg-white data-[state=active]:text-surface-900 data-[state=active]:shadow-sm dark:text-surface-400 dark:data-[state=active]:bg-surface-700 dark:data-[state=active]:text-surface-100"
+                    >
+                      Tokens
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="activity"
+                      class="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-surface-500 transition-all data-[state=active]:bg-white data-[state=active]:text-surface-900 data-[state=active]:shadow-sm dark:text-surface-400 dark:data-[state=active]:bg-surface-700 dark:data-[state=active]:text-surface-100"
+                    >
+                      Activity
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="tokens" class="focus:outline-none">
+                    <TokenList />
+                  </TabsContent>
+                  <TabsContent value="activity" class="focus:outline-none">
+                    <TransactionList />
+                  </TabsContent>
+                </TabsRoot>
+              </Motion>
             </div>
           </Transition>
         </main>
+
+        <!-- Send Sheet -->
+        <DialogRoot v-model:open="showSend">
+          <DialogPortal>
+            <DialogOverlay class="send-overlay fixed inset-0 z-50 bg-black/40" />
+            <DialogContent
+              class="send-sheet fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border-t border-surface-200 bg-white px-4 pb-8 pt-4 shadow-xl sm:px-6 dark:border-surface-700 dark:bg-surface-900"
+            >
+              <div class="mb-1 flex justify-center">
+                <div class="h-1 w-10 rounded-full bg-surface-200 dark:bg-surface-700" />
+              </div>
+              <div class="mb-4 flex items-center justify-between">
+                <DialogTitle class="text-lg font-semibold text-surface-900 dark:text-surface-100">
+                  Send
+                </DialogTitle>
+                <DialogClose
+                  aria-label="Close"
+                  class="rounded-lg p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-800 dark:hover:text-surface-300"
+                >
+                  <X class="h-5 w-5" />
+                </DialogClose>
+              </div>
+              <SendTransaction />
+            </DialogContent>
+          </DialogPortal>
+        </DialogRoot>
+
         <Toast />
       </div>
     </TooltipProvider>
@@ -54,5 +147,22 @@ const { isConnected } = useConnection();
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.send-overlay {
+  animation: overlayShow 200ms ease;
+}
+.send-sheet {
+  animation: sheetSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes overlayShow {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
 }
 </style>

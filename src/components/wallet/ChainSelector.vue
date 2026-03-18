@@ -30,14 +30,14 @@ function handleSwitch(id: number) {
   <PopoverRoot v-model:open="open">
     <PopoverTrigger as-child>
       <button
-        class="flex min-h-[36px] items-center gap-1.5 rounded-lg border border-surface-200 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-50 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800"
+        class="flex min-h-[36px] items-center gap-1.5 rounded-lg border border-surface-200 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800"
       >
         <img
           :src="getChainLogo(chainId ?? 1)"
           :alt="chainMeta[chainId ?? 1]?.chain.name"
           class="h-4 w-4 shrink-0 rounded-full"
         />
-        <span class="hidden sm:inline">{{ chainMeta[chainId ?? 1]?.chain.name ?? "Unknown" }}</span>
+        <span>{{ chainMeta[chainId ?? 1]?.chain.name ?? "Unknown" }}</span>
         <ChevronDown class="h-3.5 w-3.5 shrink-0 text-surface-400" />
       </button>
     </PopoverTrigger>
@@ -79,6 +79,7 @@ function handleSwitch(id: number) {
 @keyframes popoverShow {
   from {
     opacity: 0;
+    transform: translateY(-4px);
   }
 }
 </style>

@@ -12,7 +12,6 @@ import { type Address, encodeFunctionData, parseEther, parseUnits } from "viem";
 import { estimateGas, estimateFeesPerGas } from "viem/actions";
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from "reka-ui";
 import { ChevronDown } from "lucide-vue-next";
-import BaseCard from "../ui/BaseCard.vue";
 import BaseInput from "../ui/BaseInput.vue";
 import BaseButton from "../ui/BaseButton.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
@@ -283,153 +282,151 @@ const showTokenPicker = ref(false);
 </script>
 
 <template>
-  <BaseCard title="Send">
-    <div class="flex flex-col gap-4">
-      <!-- Token selector -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Token</label>
-        <PopoverRoot v-model:open="showTokenPicker">
-          <PopoverTrigger as-child>
-            <button
-              type="button"
-              class="flex w-full items-center gap-2 rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 dark:border-surface-700 dark:bg-surface-900 dark:hover:bg-surface-800"
-              :disabled="isSending || isConfirming"
-            >
-              <TokenLogo :urls="currentLogoUrls" :symbol="currentSymbol" size="h-6 w-6" />
-              <span class="flex-1 font-medium text-surface-900 dark:text-surface-100">
-                {{ currentSymbol }}
-              </span>
-              <span v-if="currentBalance !== null" class="text-xs text-surface-400">
-                {{ formatBalance(currentBalance, currentDecimals) }}
-              </span>
-              <ChevronDown class="h-4 w-4 shrink-0 text-surface-400" />
-            </button>
-          </PopoverTrigger>
-
-          <PopoverPortal>
-            <PopoverContent
-              class="popover-content z-30 max-h-60 w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-xl border border-surface-200 bg-white py-1 shadow-lg dark:border-surface-700 dark:bg-surface-900"
-              :side-offset="4"
-              align="start"
-            >
-              <!-- Native token option -->
-              <button
-                type="button"
-                class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
-                :class="
-                  !isTokenSend
-                    ? 'text-primary-600 dark:text-primary-400 font-medium'
-                    : 'text-surface-700 dark:text-surface-300'
-                "
-                @click="
-                  selectToken(null);
-                  showTokenPicker = false;
-                "
-              >
-                <TokenLogo
-                  :urls="nativeLogoUrls"
-                  :symbol="nativeBalance?.symbol ?? 'ETH'"
-                  size="h-6 w-6"
-                />
-                {{ nativeBalance?.symbol ?? "ETH" }}
-                <span class="ml-auto text-xs text-surface-400">Native</span>
-              </button>
-
-              <!-- ERC-20 tokens -->
-              <button
-                v-for="tb in fetchedTokens"
-                :key="tb.token.address"
-                type="button"
-                class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
-                :class="
-                  selectedTokenAddress === tb.token.address
-                    ? 'text-primary-600 dark:text-primary-400 font-medium'
-                    : 'text-surface-700 dark:text-surface-300'
-                "
-                @click="
-                  selectToken(tb);
-                  showTokenPicker = false;
-                "
-              >
-                <TokenLogo :urls="tb.logoUrls" :symbol="tb.token.symbol" size="h-6 w-6" />
-                {{ tb.token.symbol }}
-                <span class="ml-auto max-w-24 truncate text-xs text-surface-400">
-                  {{ tb.token.name }}
-                </span>
-              </button>
-            </PopoverContent>
-          </PopoverPortal>
-        </PopoverRoot>
-      </div>
-
-      <BaseInput
-        v-model="recipient"
-        label="Recipient Address"
-        placeholder="0x..."
-        :error="recipientError"
-        :disabled="isSending || isConfirming"
-        autocomplete="off"
-        autocapitalize="none"
-        spellcheck="false"
-      />
-
-      <div>
-        <div class="flex items-center justify-between">
-          <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Amount</label>
+  <div class="flex flex-col gap-4">
+    <!-- Token selector -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Token</label>
+      <PopoverRoot v-model:open="showTokenPicker">
+        <PopoverTrigger as-child>
           <button
             type="button"
-            class="rounded px-1.5 py-0.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
-            :disabled="isSending || isConfirming || currentBalance === null"
-            @click="setMax"
+            class="flex w-full items-center gap-2 rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 dark:border-surface-700 dark:bg-surface-900 dark:hover:bg-surface-800"
+            :disabled="isSending || isConfirming"
           >
-            Max
+            <TokenLogo :urls="currentLogoUrls" :symbol="currentSymbol" size="h-6 w-6" />
+            <span class="flex-1 font-medium text-surface-900 dark:text-surface-100">
+              {{ currentSymbol }}
+            </span>
+            <span v-if="currentBalance !== null" class="text-xs text-surface-400">
+              {{ formatBalance(currentBalance, currentDecimals) }}
+            </span>
+            <ChevronDown class="h-4 w-4 shrink-0 text-surface-400" />
           </button>
-        </div>
-        <BaseInput
-          v-model="amount"
-          :placeholder="`0.0 ${currentSymbol}`"
-          :error="amountError"
-          :disabled="isSending || isConfirming"
-          inputmode="decimal"
-          class="mt-1.5"
-        />
-      </div>
+        </PopoverTrigger>
 
-      <div class="flex items-center gap-3">
-        <BaseButton
-          variant="primary"
-          :loading="isSending || isConfirming"
-          class="flex-1"
-          @click="handleSend"
-        >
-          {{
-            isSending
-              ? "Confirm in wallet..."
-              : isConfirming
-                ? "Confirming..."
-                : `Send ${currentSymbol}`
-          }}
-        </BaseButton>
-        <BaseButton v-if="txHash" variant="ghost" @click="resetForm"> Reset </BaseButton>
-      </div>
+        <PopoverPortal>
+          <PopoverContent
+            class="popover-content z-30 max-h-60 w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-xl border border-surface-200 bg-white py-1 shadow-lg dark:border-surface-700 dark:bg-surface-900"
+            :side-offset="4"
+            align="start"
+          >
+            <!-- Native token option -->
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
+              :class="
+                !isTokenSend
+                  ? 'text-primary-600 dark:text-primary-400 font-medium'
+                  : 'text-surface-700 dark:text-surface-300'
+              "
+              @click="
+                selectToken(null);
+                showTokenPicker = false;
+              "
+            >
+              <TokenLogo
+                :urls="nativeLogoUrls"
+                :symbol="nativeBalance?.symbol ?? 'ETH'"
+                size="h-6 w-6"
+              />
+              {{ nativeBalance?.symbol ?? "ETH" }}
+              <span class="ml-auto text-xs text-surface-400">Native</span>
+            </button>
 
-      <div
-        v-if="txStatus"
-        class="flex items-center justify-between rounded-xl bg-surface-50 px-4 py-3 dark:bg-surface-800/50"
-      >
-        <StatusBadge :status="txStatus" />
-        <a
-          v-if="explorerUrl"
-          :href="explorerUrl"
-          target="_blank"
-          rel="noopener"
-          class="text-xs text-primary-600 hover:underline dark:text-primary-400"
-        >
-          View on explorer
-        </a>
-      </div>
+            <!-- ERC-20 tokens -->
+            <button
+              v-for="tb in fetchedTokens"
+              :key="tb.token.address"
+              type="button"
+              class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
+              :class="
+                selectedTokenAddress === tb.token.address
+                  ? 'text-primary-600 dark:text-primary-400 font-medium'
+                  : 'text-surface-700 dark:text-surface-300'
+              "
+              @click="
+                selectToken(tb);
+                showTokenPicker = false;
+              "
+            >
+              <TokenLogo :urls="tb.logoUrls" :symbol="tb.token.symbol" size="h-6 w-6" />
+              {{ tb.token.symbol }}
+              <span class="ml-auto max-w-24 truncate text-xs text-surface-400">
+                {{ tb.token.name }}
+              </span>
+            </button>
+          </PopoverContent>
+        </PopoverPortal>
+      </PopoverRoot>
     </div>
-  </BaseCard>
+
+    <BaseInput
+      v-model="recipient"
+      label="Recipient Address"
+      placeholder="0x..."
+      :error="recipientError"
+      :disabled="isSending || isConfirming"
+      autocomplete="off"
+      autocapitalize="none"
+      spellcheck="false"
+    />
+
+    <div>
+      <div class="flex items-center justify-between">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Amount</label>
+        <button
+          type="button"
+          class="rounded px-1.5 py-0.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
+          :disabled="isSending || isConfirming || currentBalance === null"
+          @click="setMax"
+        >
+          Max
+        </button>
+      </div>
+      <BaseInput
+        v-model="amount"
+        :placeholder="`0.0 ${currentSymbol}`"
+        :error="amountError"
+        :disabled="isSending || isConfirming"
+        inputmode="decimal"
+        class="mt-1.5"
+      />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <BaseButton
+        variant="primary"
+        :loading="isSending || isConfirming"
+        class="flex-1"
+        @click="handleSend"
+      >
+        {{
+          isSending
+            ? "Confirm in wallet..."
+            : isConfirming
+              ? "Confirming..."
+              : `Send ${currentSymbol}`
+        }}
+      </BaseButton>
+      <BaseButton v-if="txHash" variant="ghost" @click="resetForm"> Reset </BaseButton>
+    </div>
+
+    <div
+      v-if="txStatus"
+      class="flex items-center justify-between rounded-xl bg-surface-100 px-4 py-3 dark:bg-surface-800/50"
+    >
+      <StatusBadge :status="txStatus" />
+      <a
+        v-if="explorerUrl"
+        :href="explorerUrl"
+        target="_blank"
+        rel="noopener"
+        class="text-xs text-primary-600 hover:underline dark:text-primary-400"
+      >
+        View on explorer
+      </a>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -439,6 +436,7 @@ const showTokenPicker = ref(false);
 @keyframes popoverShow {
   from {
     opacity: 0;
+    transform: translateY(-4px);
   }
 }
 </style>

@@ -16,7 +16,6 @@ import { fetchBlockscoutTransactions, type Transaction } from "../../utils/block
 import { getExplorerTxUrl } from "../../utils/chains";
 import { truncateAddress } from "../../utils/format";
 import { formatUnits } from "viem";
-import BaseCard from "../ui/BaseCard.vue";
 
 const { address } = useConnection();
 const chainId = useChainId();
@@ -188,7 +187,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
 </script>
 
 <template>
-  <BaseCard title="Recent Transactions">
+  <div>
     <!-- Loading skeleton -->
     <div v-if="isLoading && transactions.length === 0" class="flex flex-col gap-3">
       <div v-for="i in 3" :key="i" class="flex items-center gap-3">
@@ -209,7 +208,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
         :href="getExplorerTxUrl(chainId, tx.hash)"
         target="_blank"
         rel="noopener"
-        class="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-50 dark:hover:bg-surface-800/50"
+        class="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
       >
         <!-- Action icon -->
         <div
@@ -286,11 +285,11 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     </div>
 
     <!-- Empty state -->
-    <p
-      v-else-if="!isLoading"
-      class="py-3 text-center text-sm text-surface-400 dark:text-surface-500"
-    >
-      No transactions found
-    </p>
-  </BaseCard>
+    <div v-else-if="!isLoading" class="flex flex-col items-center gap-1.5 py-8 text-center">
+      <p class="text-sm font-medium text-surface-500 dark:text-surface-400">No activity yet</p>
+      <p class="text-xs text-surface-400 dark:text-surface-500">
+        Your transactions will appear here after your first send
+      </p>
+    </div>
+  </div>
 </template>

@@ -24,7 +24,7 @@ function copyAddress() {
       <TooltipTrigger as-child>
         <button
           aria-label="Copy wallet address"
-          class="flex min-h-[36px] items-center gap-1.5 rounded-lg border border-surface-200 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-50 active:bg-surface-100 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800"
+          class="flex min-h-[36px] items-center gap-1.5 rounded-lg border border-surface-200 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-100 active:bg-surface-200 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800"
           @click="copyAddress"
         >
           {{ truncateAddress(address) }}
