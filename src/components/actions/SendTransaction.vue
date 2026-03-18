@@ -8,14 +8,15 @@ import {
   useSendTransaction,
   useWaitForTransactionReceipt,
 } from "@wagmi/vue";
-import { type Address, encodeFunctionData, parseEther, parseUnits } from "viem";
+import { type Address, encodeFunctionData, formatUnits, parseEther, parseUnits } from "viem";
 import { estimateGas, estimateFeesPerGas } from "viem/actions";
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from "reka-ui";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown, ScanLine } from "lucide-vue-next";
 import BaseInput from "../ui/BaseInput.vue";
 import BaseButton from "../ui/BaseButton.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
 import TokenLogo from "../ui/TokenLogo.vue";
+import QrScanner from "./QrScanner.vue";
 import { validateAddress, validateAmount, isUserRejection } from "../../utils/validation";
 import { formatBalance } from "../../utils/format";
 import { getExplorerTxUrl } from "../../utils/chains";
@@ -24,6 +25,7 @@ import { calculateMaxSendable, resolveTransactionChainId } from "../../utils/tra
 import { erc20Abi } from "../../utils/tokens";
 import { fetchBlockscoutTokens, type TokenWithBalance } from "../../utils/blockscout";
 import { getNativeTokenLogoUrls } from "../../utils/token-logos";
+import { parseEip681 } from "../../utils/eip681";
 
 const { address } = useConnection();
 const chainId = useChainId();
@@ -279,6 +281,52 @@ watch(receipt, (val) => {
 
 // Token selector dropdown
 const showTokenPicker = ref(false);
+
+// QR scanner
+const showScanner = ref(false);
+
+function handleScanned(value: string) {
+  showScanner.value = false;
+  const parsed = parseEip681(value);
+
+  if (!parsed) {
+    addToast("QR code does not contain a valid address", "error");
+    return;
+  }
+
+  recipient.value = parsed.address;
+  recipientError.value = null;
+
+  // Pre-fill amount from EIP-681 value (native, in wei)
+  if (parsed.value && !isTokenSend.value && nativeBalance.value) {
+    try {
+      amount.value = formatUnits(BigInt(parsed.value), nativeBalance.value.decimals);
+      amountError.value = null;
+    } catch {
+      // Ignore parse errors, user can type amount manually
+    }
+  }
+
+  // If ERC-20 transfer URI, try to select matching token and fill amount
+  if (parsed.token) {
+    const matchingToken = fetchedTokens.value.find(
+      (t) => t.token.address.toLowerCase() === parsed.token!.toLowerCase(),
+    );
+    if (matchingToken) {
+      selectToken(matchingToken);
+      if (parsed.amount) {
+        try {
+          amount.value = formatUnits(BigInt(parsed.amount), matchingToken.token.decimals);
+          amountError.value = null;
+        } catch {
+          // Ignore
+        }
+      }
+    }
+  }
+
+  addToast("Address scanned successfully", "success");
+}
 </script>
 
 <template>
@@ -360,16 +408,34 @@ const showTokenPicker = ref(false);
       </PopoverRoot>
     </div>
 
-    <BaseInput
-      v-model="recipient"
-      label="Recipient Address"
-      placeholder="0x..."
-      :error="recipientError"
-      :disabled="isSending || isConfirming"
-      autocomplete="off"
-      autocapitalize="none"
-      spellcheck="false"
-    />
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-surface-700 dark:text-surface-300">
+        Recipient Address
+      </label>
+      <div class="flex items-start gap-2">
+        <BaseInput
+          v-model="recipient"
+          placeholder="0x..."
+          :error="recipientError"
+          :disabled="isSending || isConfirming"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          class="flex-1"
+        />
+        <button
+          type="button"
+          class="mt-px flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-500 transition-colors hover:bg-surface-50 hover:text-surface-700 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-surface-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="isSending || isConfirming"
+          aria-label="Scan QR code"
+          @click="showScanner = true"
+        >
+          <ScanLine class="h-5 w-5" />
+        </button>
+      </div>
+    </div>
+
+    <QrScanner v-if="showScanner" @scanned="handleScanned" @close="showScanner = false" />
 
     <div>
       <div class="flex items-center justify-between">
