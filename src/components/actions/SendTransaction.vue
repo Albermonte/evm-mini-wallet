@@ -51,8 +51,10 @@ async function fetchAvailableTokens() {
 // Token selection: null = native token
 const selectedTokenAddress = ref<Address | null>(null);
 
+const erc20Tokens = computed(() => fetchedTokens.value.filter((t) => !t.token.isNative));
+
 const selectedEntry = computed(() =>
-  fetchedTokens.value.find((t) => t.token.address === selectedTokenAddress.value),
+  erc20Tokens.value.find((t) => t.token.address === selectedTokenAddress.value),
 );
 
 const isTokenSend = computed(() => selectedTokenAddress.value !== null);
@@ -354,8 +356,10 @@ function handleScanned(value: string) {
 
         <PopoverPortal>
           <PopoverContent
-            class="popover-content z-[60] max-h-60 w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-lg border border-surface-300 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-900"
+            class="popover-content z-[60] max-h-[min(15rem,var(--reka-popper-available-height))] w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-lg border border-surface-300 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-900"
             :side-offset="4"
+            :collision-padding="16"
+            :avoid-collisions="true"
             align="start"
           >
             <!-- Native token option -->
@@ -383,7 +387,7 @@ function handleScanned(value: string) {
 
             <!-- ERC-20 tokens -->
             <button
-              v-for="tb in fetchedTokens"
+              v-for="tb in erc20Tokens"
               :key="tb.token.address"
               type="button"
               class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
