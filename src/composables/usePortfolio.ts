@@ -1,0 +1,136 @@
+import { useQuery } from "@tanstack/vue-query";
+import { useChainId, useConnection } from "@wagmi/vue";
+import { computed, ref, watch, type Ref } from "vue";
+import { fetchBlockscoutTokens, type TokenWithBalance } from "../utils/blockscout";
+import { calculateFiatValue, fetchTokenPrices } from "../utils/prices";
+import { getTokenKey } from "../utils/tokens";
+
+export interface PortfolioToken extends TokenWithBalance {
+  fiatPrice: number | null;
+  fiatValue: number | null;
+}
+
+const trustedTokenKeysByScope = new Map<string, Ref<Set<string>>>();
+
+function getScopeTrustState(scopeKey: string): Ref<Set<string>> {
+  const existing = trustedTokenKeysByScope.get(scopeKey);
+  if (existing) return existing;
+
+  const trustState = ref(new Set<string>());
+  trustedTokenKeysByScope.set(scopeKey, trustState);
+  return trustState;
+}
+
+export function usePortfolio(options: { vsCurrency?: string } = {}) {
+  const { vsCurrency = "usd" } = options;
+  const { address } = useConnection();
+  const chainId = useChainId();
+
+  const scopeKey = computed(() => {
+    if (!chainId.value || !address.value) return "disconnected";
+    return `${chainId.value}:${address.value.toLowerCase()}`;
+  });
+
+  const scopeTrustState = computed(() => getScopeTrustState(scopeKey.value));
+
+  const balancesQuery = useQuery({
+    queryKey: computed(() => ["portfolio-balances", chainId.value ?? null, address.value ?? null]),
+    enabled: computed(() => Boolean(chainId.value && address.value)),
+    queryFn: async () => {
+      if (!chainId.value || !address.value) return [];
+
+      const tokens = await fetchBlockscoutTokens(chainId.value, address.value).catch(() => []);
+      return tokens.filter((token) => token.balance > 0n);
+    },
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+  });
+
+  watch(scopeKey, (nextScopeKey, previousScopeKey) => {
+    if (!previousScopeKey || nextScopeKey === previousScopeKey) return;
+    scopeTrustState.value.value = new Set();
+  });
+
+  const tokenBalances = computed(() => balancesQuery.data.value ?? []);
+
+  const trustedTokenKeys = computed(() => {
+    const trusted = new Set(scopeTrustState.value.value);
+
+    for (const token of tokenBalances.value) {
+      if (token.token.isNative) {
+        trusted.add(getTokenKey(token.token));
+      }
+    }
+
+    return trusted;
+  });
+
+  const pricedTokens = computed(() =>
+    tokenBalances.value.filter((token) => trustedTokenKeys.value.has(getTokenKey(token.token))),
+  );
+
+  const pricesQuery = useQuery({
+    queryKey: computed(() => [
+      "portfolio-prices",
+      chainId.value ?? null,
+      vsCurrency,
+      pricedTokens.value.map((token) => getTokenKey(token.token)),
+    ]),
+    enabled: computed(() => Boolean(chainId.value && pricedTokens.value.length > 0)),
+    queryFn: async () => {
+      if (!chainId.value || pricedTokens.value.length === 0) return {};
+
+      return fetchTokenPrices(
+        chainId.value,
+        pricedTokens.value.map((token) => token.token),
+        vsCurrency,
+      );
+    },
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+  });
+
+  const tokens = computed(() => {
+    const prices = pricesQuery.data.value ?? {};
+
+    return tokenBalances.value.map<PortfolioToken>((token) => {
+      const tokenKey = getTokenKey(token.token);
+      const fiatPrice = prices[tokenKey] ?? null;
+
+      return {
+        ...token,
+        fiatPrice,
+        fiatValue: calculateFiatValue(token.balance, token.token.decimals, fiatPrice),
+      };
+    });
+  });
+
+  const portfolioTotalFiat = computed(() => {
+    let total = 0;
+    let hasTrustedPricedAsset = false;
+
+    for (const token of tokens.value) {
+      const tokenKey = getTokenKey(token.token);
+      if (!trustedTokenKeys.value.has(tokenKey) || token.fiatValue === null) continue;
+
+      total += token.fiatValue;
+      hasTrustedPricedAsset = true;
+    }
+
+    return hasTrustedPricedAsset ? total : null;
+  });
+
+  function markTokenTrusted(tokenKey: string) {
+    scopeTrustState.value.value.add(tokenKey);
+    scopeTrustState.value.value = new Set(scopeTrustState.value.value);
+  }
+
+  return {
+    isLoading: computed(() => balancesQuery.isPending.value || pricesQuery.isPending.value),
+    markTokenTrusted,
+    portfolioTotalFiat,
+    scopeKey,
+    tokens,
+    trustedTokenKeys,
+  };
+}

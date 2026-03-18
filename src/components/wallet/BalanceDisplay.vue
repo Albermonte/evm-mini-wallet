@@ -1,14 +1,8 @@
 <script setup lang="ts">
-import { useConnection, useChainId, useBalance } from "@wagmi/vue";
-import { formatBalance } from "../../utils/format";
-import { chainMeta, getChainLogo } from "../../utils/chains";
+import { usePortfolio } from "../../composables/usePortfolio";
+import { formatCurrency } from "../../utils/format";
 
-const { address } = useConnection();
-const chainId = useChainId();
-const { data: balance, isLoading } = useBalance({
-  address,
-  query: { refetchInterval: 30_000 },
-});
+const { isLoading, portfolioTotalFiat } = usePortfolio();
 </script>
 
 <template>
@@ -19,24 +13,17 @@ const { data: balance, isLoading } = useBalance({
       <div class="h-6 w-24 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700" />
     </div>
 
-    <template v-else-if="balance">
+    <template v-else-if="portfolioTotalFiat !== null">
       <p
         class="max-w-full text-center font-display text-5xl font-extrabold tracking-tighter text-surface-900 sm:text-6xl dark:text-white"
         style="overflow-wrap: break-word"
       >
-        {{ formatBalance(balance.value) }}
+        {{ formatCurrency(portfolioTotalFiat) }}
       </p>
       <div
         class="flex items-center gap-1.5 rounded-full border border-surface-200 px-3 py-1 dark:border-surface-700"
       >
-        <img
-          :src="getChainLogo(chainId ?? 1)"
-          :alt="chainMeta[chainId ?? 1]?.chain.name"
-          class="h-4 w-4 rounded-full"
-        />
-        <span class="text-sm font-medium text-surface-500 dark:text-surface-400">
-          {{ balance.symbol }}
-        </span>
+        <span class="text-sm font-medium text-surface-500 dark:text-surface-400"> USD </span>
       </div>
     </template>
 

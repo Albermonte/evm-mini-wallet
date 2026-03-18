@@ -1,54 +1,30 @@
 <script setup lang="ts">
-import { watch, shallowRef, ref, computed } from "vue";
-import { useConnection, useChainId } from "@wagmi/vue";
-import { useTimeoutPoll } from "@vueuse/core";
-import { fetchBlockscoutTokens, type TokenWithBalance } from "../../utils/blockscout";
+import { watch, shallowRef, computed } from "vue";
+import { usePortfolio } from "../../composables/usePortfolio";
 import { formatBalance } from "../../utils/format";
+import { getTokenKey } from "../../utils/tokens";
 import TokenLogo from "../ui/TokenLogo.vue";
 
-const { address } = useConnection();
-const chainId = useChainId();
-
-const tokenBalances = ref<TokenWithBalance[]>([]);
-const isLoading = shallowRef(false);
 const expanded = shallowRef(false);
-const succeededLogos = ref(new Set<string>());
-
-function onLogoLoaded(tokenAddress: string) {
-  succeededLogos.value.add(tokenAddress);
-  succeededLogos.value = new Set(succeededLogos.value);
-}
+const { tokens, isLoading, markTokenTrusted, scopeKey, trustedTokenKeys } = usePortfolio();
 
 const extraTokens = computed(() =>
-  tokenBalances.value.filter((t) => !succeededLogos.value.has(t.token.address)),
+  tokens.value.filter((token) => !trustedTokenKeys.value.has(getTokenKey(token.token))),
 );
 
-async function fetchBalances() {
-  if (!address.value || !chainId.value) {
-    tokenBalances.value = [];
-    return;
-  }
-
-  isLoading.value = true;
-  try {
-    const tokens = await fetchBlockscoutTokens(chainId.value, address.value);
-    tokenBalances.value = tokens.filter((t) => t.balance > 0n);
-  } catch {
-    tokenBalances.value = [];
-  }
-  succeededLogos.value = new Set();
-  expanded.value = false;
-  isLoading.value = false;
-}
-
-useTimeoutPoll(fetchBalances, 30_000, { immediateCallback: true });
-watch([chainId, address], fetchBalances);
+watch(
+  scopeKey,
+  () => {
+    expanded.value = false;
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <div>
     <!-- Loading skeleton -->
-    <div v-if="isLoading && tokenBalances.length === 0" class="flex flex-col gap-3">
+    <div v-if="isLoading && tokens.length === 0" class="flex flex-col gap-3">
       <div v-for="i in 3" :key="i" class="flex items-center gap-3">
         <div class="h-8 w-8 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700" />
         <div class="flex-1">
@@ -60,17 +36,17 @@ watch([chainId, address], fetchBalances);
     </div>
 
     <!-- Token list -->
-    <div v-else-if="tokenBalances.length > 0" class="flex flex-col gap-1">
+    <div v-else-if="tokens.length > 0" class="flex flex-col gap-1">
       <div
-        v-for="tb in tokenBalances"
-        :key="tb.token.address"
-        v-show="succeededLogos.has(tb.token.address) || expanded"
+        v-for="tb in tokens"
+        :key="getTokenKey(tb.token)"
+        v-show="trustedTokenKeys.has(getTokenKey(tb.token)) || expanded"
         class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
       >
         <TokenLogo
           :urls="tb.logoUrls"
           :symbol="tb.token.symbol"
-          @logo-loaded="onLogoLoaded(tb.token.address)"
+          @logo-loaded="markTokenTrusted(getTokenKey(tb.token))"
         />
 
         <div class="min-w-0 flex-1">
