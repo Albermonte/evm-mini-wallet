@@ -45,13 +45,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col items-center justify-center gap-5 px-5 py-10 sm:gap-6 sm:py-16">
-    <div
-      class="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-lg"
-    >
-      <Wallet class="h-10 w-10" :stroke-width="1.5" />
-    </div>
-
+  <div class="flex flex-1 flex-col items-center justify-center gap-6 px-5 py-10 sm:py-16">
     <div class="text-center">
       <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-100">
         EVM Mini Wallet
@@ -60,6 +54,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
     </div>
 
     <BaseButton variant="primary" class="px-8 py-3 text-base" @click="showModal = true">
+      <Wallet class="h-4 w-4" :stroke-width="2" />
       Connect Wallet
     </BaseButton>
 

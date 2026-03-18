@@ -47,7 +47,7 @@ watch([chainId, address], fetchBalances);
 </script>
 
 <template>
-  <BaseCard title="Tokens">
+  <BaseCard>
     <!-- Loading skeleton -->
     <div v-if="isLoading && tokenBalances.length === 0" class="flex flex-col gap-3">
       <div v-for="i in 3" :key="i" class="flex items-center gap-3">

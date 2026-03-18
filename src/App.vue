@@ -30,14 +30,13 @@ const { isConnected } = useConnection();
           <Transition name="fade" mode="out-in">
             <ConnectWallet v-if="!isConnected" />
 
-            <div
-              v-else
-              class="mx-auto flex w-full max-w-lg flex-col gap-3 px-3 py-4 sm:gap-4 sm:px-4 sm:py-6"
-            >
+            <div v-else class="mx-auto flex w-full max-w-lg flex-col px-3 sm:px-4">
               <BalanceDisplay />
-              <TokenList />
-              <SendTransaction />
-              <TransactionList />
+              <div class="flex flex-col gap-3 sm:gap-4 pb-6">
+                <TokenList />
+                <SendTransaction />
+                <TransactionList />
+              </div>
             </div>
           </Transition>
         </main>
