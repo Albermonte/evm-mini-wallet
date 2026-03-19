@@ -1,3 +1,9 @@
+# Project Guidelines
+
+## Mobile First
+
+This is a mobile-first wallet app. All development effort should be directed towards mobile design. Prioritize touch-friendly interactions, mobile viewport layouts, and small-screen usability in every feature and UI change.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web
