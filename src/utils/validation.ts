@@ -1,21 +1,21 @@
 import { isAddress, parseUnits } from "viem";
 
 export function validateAddress(value: string): string | null {
-  if (!value) return "Address is required";
-  if (!isAddress(value)) return "Invalid Ethereum address";
+  if (!value) return "Enter a recipient address";
+  if (!isAddress(value)) return "Not a valid address. Check for typos";
   return null;
 }
 
 export function validateAmount(value: string, balance?: bigint, decimals = 18): string | null {
-  if (!value) return "Amount is required";
+  if (!value) return "Enter an amount";
   let parsed: bigint;
   try {
     parsed = parseUnits(value, decimals);
   } catch {
-    return "Enter a valid positive amount";
+    return "Not a valid number";
   }
-  if (parsed <= 0n) return "Enter a valid positive amount";
-  if (balance !== undefined && parsed > balance) return "Insufficient balance";
+  if (parsed <= 0n) return "Amount must be greater than zero";
+  if (balance !== undefined && parsed > balance) return "Exceeds your balance";
   return null;
 }
 

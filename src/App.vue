@@ -31,7 +31,7 @@ const showSend = ref(false);
 </script>
 
 <template>
-  <ToastProvider swipe-direction="right">
+  <ToastProvider swipe-direction="down">
     <TooltipProvider :delay-duration="300">
       <div
         class="flex min-h-svh flex-col"
@@ -51,17 +51,13 @@ const showSend = ref(false);
             <div v-else class="mx-auto flex w-full max-w-lg flex-col px-3 sm:px-4">
               <!-- Hero Balance + Send -->
               <Motion
-                class="flex items-end justify-between gap-4 pb-6"
+                class="flex items-center justify-between gap-4 pb-6"
                 :initial="{ opacity: 0, y: 24 }"
                 :animate="{ opacity: 1, y: 0 }"
                 :transition="{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
               >
                 <BalanceDisplay />
-                <BaseButton
-                  variant="primary"
-                  class="mb-8 shrink-0 px-5 sm:mb-10"
-                  @click="showSend = true"
-                >
+                <BaseButton variant="primary" class="shrink-0 px-5" @click="showSend = true">
                   <ArrowUpRight class="h-4 w-4" />
                   Send
                 </BaseButton>
@@ -77,13 +73,13 @@ const showSend = ref(false);
                   <TabsList class="mb-4 flex border-b border-surface-200 dark:border-surface-800">
                     <TabsTrigger
                       value="tokens"
-                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-surface-400 transition-all data-[state=active]:border-surface-900 data-[state=active]:text-surface-900 dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
+                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-bold text-surface-400 transition-all data-[state=active]:border-black data-[state=active]:text-black dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
                     >
                       Tokens
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-surface-400 transition-all data-[state=active]:border-surface-900 data-[state=active]:text-surface-900 dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
+                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-bold text-surface-400 transition-all data-[state=active]:border-black data-[state=active]:text-black dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
                     >
                       Activity
                     </TabsTrigger>

@@ -136,7 +136,7 @@ async function setMax() {
   // Native token max (existing logic)
   recipientError.value = validateAddress(recipient.value);
   if (recipientError.value) {
-    addToast("Enter a valid recipient before using Max", "info");
+    addToast("Enter a recipient address first", "info");
     return;
   }
 
@@ -154,13 +154,13 @@ async function setMax() {
     const feePerGas = feeEstimate.maxFeePerGas ?? feeEstimate.gasPrice;
 
     if (!feePerGas) {
-      throw new Error("Unable to determine network fee");
+      throw new Error("Could not estimate network fees. Try again");
     }
 
     const spendable = calculateMaxSendable(nativeBalance.value.value, gasLimit, feePerGas);
     if (spendable === null) {
-      amountError.value = "Insufficient balance";
-      addToast("Balance is too low to cover network fees", "error");
+      amountError.value = "Exceeds your balance";
+      addToast("Not enough to cover the amount plus network fees", "error");
       return;
     }
 
@@ -168,12 +168,12 @@ async function setMax() {
     amountError.value = null;
   } catch (err) {
     if (isUserRejection(err as Error)) {
-      addToast("Fee estimation rejected", "info");
+      addToast("You cancelled the fee estimate", "info");
       return;
     }
 
     const short = (err as { shortMessage?: string; message?: string }).shortMessage;
-    addToast(short ?? (err as Error).message ?? "Unable to estimate max amount", "error");
+    addToast(short ?? (err as Error).message ?? "Could not calculate max amount", "error");
   }
 }
 
@@ -206,7 +206,7 @@ function handleSend() {
       },
       {
         onSuccess() {
-          addToast(`${token.symbol} transfer sent!`, "success");
+          addToast(`Sending ${token.symbol}...`, "success");
         },
         onError: handleSendError,
       },
@@ -220,7 +220,7 @@ function handleSend() {
       },
       {
         onSuccess() {
-          addToast("Transaction sent!", "success");
+          addToast("Transaction submitted", "success");
         },
         onError: handleSendError,
       },
@@ -231,7 +231,7 @@ function handleSend() {
 function handleSendError(err: Error) {
   submittedChainId.value = null;
   if (isUserRejection(err)) {
-    addToast("Transaction rejected", "info");
+    addToast("You cancelled the transaction", "info");
   } else {
     const short = (err as { shortMessage?: string }).shortMessage ?? err.message;
     addToast(short, "error");
@@ -272,7 +272,7 @@ watch(
 watch(receipt, (val) => {
   if (val) {
     if (val.status === "success") {
-      addToast("Transaction confirmed!", "success");
+      addToast("Transaction confirmed", "success");
       // Refresh token list and balances after successful send
       if (isTokenSend.value) {
         fetchAvailableTokens();
@@ -294,7 +294,7 @@ function handleScanned(value: string) {
   const parsed = parseEip681(value);
 
   if (!parsed) {
-    addToast("QR code does not contain a valid address", "error");
+    addToast("No valid address found in this QR code", "error");
     return;
   }
 
@@ -329,7 +329,7 @@ function handleScanned(value: string) {
     }
   }
 
-  addToast("Address scanned successfully", "success");
+  addToast("Address scanned", "success");
 }
 </script>
 
@@ -358,7 +358,7 @@ function handleScanned(value: string) {
 
         <PopoverPortal>
           <PopoverContent
-            class="popover-content z-[60] max-h-[min(15rem,var(--reka-popper-available-height))] w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-lg border border-surface-300 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-900"
+            class="popover-content z-[60] max-h-[min(20rem,var(--reka-popper-available-height))] w-[var(--reka-popper-anchor-width)] overflow-y-auto rounded-lg border border-surface-300 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-900"
             :side-offset="4"
             :collision-padding="16"
             :avoid-collisions="true"
@@ -415,9 +415,7 @@ function handleScanned(value: string) {
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium text-surface-700 dark:text-surface-300">
-        Recipient Address
-      </label>
+      <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Recipient</label>
       <div class="flex gap-2">
         <div class="min-w-0 flex-1">
           <BaseInput
@@ -481,7 +479,7 @@ function handleScanned(value: string) {
               : `Send ${currentSymbol}`
         }}
       </BaseButton>
-      <BaseButton v-if="txHash" variant="ghost" @click="resetForm"> Reset </BaseButton>
+      <BaseButton v-if="txHash" variant="ghost" @click="resetForm"> New </BaseButton>
     </div>
 
     <div

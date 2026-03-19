@@ -4,6 +4,10 @@
 
 This is a mobile-first wallet app. All development effort should be directed towards mobile design. Prioritize touch-friendly interactions, mobile viewport layouts, and small-screen usability in every feature and UI change.
 
+## Design Direction
+
+Black and white, punchy feeling. Do not introduce brand colors or accent colors. Keep the palette strictly monochrome (black, white, grays). Achieve visual impact through extreme contrast, bold typography weights, sharp borders, and dramatic scale hierarchy — not through color.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web

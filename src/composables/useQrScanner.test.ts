@@ -67,7 +67,7 @@ describe("useQrScanner", () => {
     await api.start();
 
     expect(api.hasCamera.value).toBe(false);
-    expect(api.error.value).toBe("No camera found on this device");
+    expect(api.error.value).toBe("No camera available on this device");
     wrapper.unmount();
   });
 
@@ -78,7 +78,7 @@ describe("useQrScanner", () => {
 
     await api.start();
 
-    expect(api.error.value).toBe("Video element not ready");
+    expect(api.error.value).toBe("Camera could not be started. Try again");
     wrapper.unmount();
   });
 
@@ -113,7 +113,7 @@ describe("useQrScanner", () => {
 
     await api.start();
 
-    expect(api.error.value).toBe("Camera permission denied");
+    expect(api.error.value).toBe("Camera access was denied. Allow camera in your browser settings");
     expect(api.hasCamera.value).toBe(true);
     expect(onError).toHaveBeenCalled();
     wrapper.unmount();

@@ -11,9 +11,10 @@ import {
   ArrowUp,
   Link,
   Settings,
+  Clock,
 } from "lucide-vue-next";
 import { fetchBlockscoutTransactions, type Transaction } from "../../utils/blockscout";
-import { getExplorerTxUrl } from "../../utils/chains";
+import { getExplorerTxUrl, chainMeta } from "../../utils/chains";
 import { formatBalance, truncateAddress } from "../../utils/format";
 import { formatUnits } from "viem";
 
@@ -180,6 +181,8 @@ function formatTime(timestamp: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+const nativeSymbol = computed(() => chainMeta[chainId.value]?.chain.nativeCurrency.symbol ?? "ETH");
+
 const recentTransactions = computed(() => transactions.value.slice(0, 10));
 </script>
 
@@ -275,7 +278,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
               isSent(tx) ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
             "
           >
-            {{ isSent(tx) ? "-" : "+" }}{{ formatValue(tx.value) }} ETH
+            {{ isSent(tx) ? "-" : "+" }}{{ formatValue(tx.value) }} {{ nativeSymbol }}
           </p>
           <p
             v-else
@@ -292,11 +295,18 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!isLoading" class="flex flex-col items-center gap-1.5 py-8 text-center">
-      <p class="text-sm font-medium text-surface-500 dark:text-surface-400">No activity yet</p>
-      <p class="text-xs text-surface-400 dark:text-surface-500">
-        Your transactions will appear here after your first send
-      </p>
+    <div v-else-if="!isLoading" class="flex flex-col items-center gap-3 py-12 text-center">
+      <div
+        class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
+      >
+        <Clock class="h-6 w-6 text-surface-400 dark:text-surface-500" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <p class="text-base font-medium text-surface-700 dark:text-surface-300">No activity yet</p>
+        <p class="text-sm text-surface-400 dark:text-surface-500">
+          Your transactions will appear here once you send or receive tokens
+        </p>
+      </div>
     </div>
   </div>
 </template>

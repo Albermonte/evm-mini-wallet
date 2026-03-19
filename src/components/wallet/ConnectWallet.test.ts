@@ -105,7 +105,7 @@ describe("ConnectWallet", () => {
 
     await wrapper.get("button").trigger("click");
 
-    expect(addToast).toHaveBeenCalledWith("Connection rejected", "info");
+    expect(addToast).toHaveBeenCalledWith("You cancelled the connection", "info");
   });
 
   it("toasts generic connection errors", async () => {

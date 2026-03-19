@@ -14,7 +14,7 @@ const { isLoading, portfolioTotalFiat } = usePortfolio();
 
     <p
       v-else
-      class="font-display text-5xl font-extrabold tracking-tighter text-surface-900 sm:text-6xl dark:text-white"
+      class="font-display text-[3.5rem] font-extrabold leading-none tracking-tighter text-black sm:text-7xl dark:text-white"
       style="overflow-wrap: break-word; min-width: 0"
     >
       {{ formatCurrency(portfolioTotalFiat ?? 0) }}

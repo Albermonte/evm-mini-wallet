@@ -11,9 +11,9 @@ const { isConnected } = useConnection();
   <header
     class="flex items-center justify-between border-b border-surface-300 px-3 py-2.5 sm:px-4 sm:py-3 dark:border-surface-700"
   >
-    <!-- Left: Theme toggle -->
-    <div class="flex items-center">
-      <ThemeToggle />
+    <!-- Left: Brand mark -->
+    <div class="flex items-center gap-1.5">
+      <img src="/favicon.svg" alt="EVM Mini Wallet" class="h-6 w-6" />
     </div>
 
     <!-- Center: Account info (when connected) -->
@@ -21,9 +21,13 @@ const { isConnected } = useConnection();
       <AccountInfo />
     </div>
 
-    <!-- Right: Chain selector (when connected) -->
-    <div class="flex items-center">
-      <ChainSelector v-if="isConnected" />
+    <!-- Right: Chain selector + Theme toggle -->
+    <div class="flex items-center gap-1">
+      <ThemeToggle v-if="!isConnected" />
+      <template v-else>
+        <ChainSelector />
+        <ThemeToggle class="hidden sm:flex" />
+      </template>
     </div>
   </header>
 </template>

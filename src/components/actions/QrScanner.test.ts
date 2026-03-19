@@ -54,10 +54,12 @@ describe("QrScanner", () => {
 
   it("shows the error overlay", async () => {
     const { wrapper } = await renderQrScanner({
-      error: "Camera permission denied",
+      error: "Camera access was denied. Allow camera in your browser settings",
     });
 
-    expect(document.body.textContent).toContain("Camera permission denied");
+    expect(document.body.textContent).toContain(
+      "Camera access was denied. Allow camera in your browser settings",
+    );
     expect(document.body.textContent).toContain("Close");
     wrapper.unmount();
   });

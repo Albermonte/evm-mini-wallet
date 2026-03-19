@@ -176,7 +176,7 @@ describe("SendTransaction", () => {
     expect((inputs[1]!.element as HTMLInputElement).value).toBe("");
     expect(estimateGas).not.toHaveBeenCalled();
     expect(estimateFeesPerGas).not.toHaveBeenCalled();
-    expect(addToast).toHaveBeenCalledWith("Enter a valid recipient before using Max", "info");
+    expect(addToast).toHaveBeenCalledWith("Enter a recipient address first", "info");
   });
 
   it("keeps explorer links pinned to the submitted chain", async () => {
@@ -273,7 +273,7 @@ describe("SendTransaction", () => {
       }),
       expect.any(Object),
     );
-    expect(addToast).toHaveBeenCalledWith("USDC transfer sent!", "success");
+    expect(addToast).toHaveBeenCalledWith("Sending USDC...", "success");
   });
 
   it("prefills native transfers from a scanned EIP-681 QR code", async () => {
@@ -293,7 +293,7 @@ describe("SendTransaction", () => {
     const [recipientInput, amountInput] = wrapper.findAll("input");
     expect((recipientInput!.element as HTMLInputElement).value).toBe(OTHER_ADDRESS);
     expect((amountInput!.element as HTMLInputElement).value).toBe("0.25");
-    expect(addToast).toHaveBeenCalledWith("Address scanned successfully", "success");
+    expect(addToast).toHaveBeenCalledWith("Address scanned", "success");
   });
 
   it("rejects invalid QR payloads", async () => {
@@ -305,7 +305,7 @@ describe("SendTransaction", () => {
     await nextTick();
     await wrapper.get('[data-testid="qr-scanner"]').trigger("click");
 
-    expect(addToast).toHaveBeenCalledWith("QR code does not contain a valid address", "error");
+    expect(addToast).toHaveBeenCalledWith("No valid address found in this QR code", "error");
   });
 
   it("toasts rejected send errors without leaving a submitted chain", async () => {
@@ -321,7 +321,7 @@ describe("SendTransaction", () => {
     await sendButton!.trigger("click");
     await nextTick();
 
-    expect(addToast).toHaveBeenCalledWith("Transaction rejected", "info");
+    expect(addToast).toHaveBeenCalledWith("You cancelled the transaction", "info");
     expect(wrapper.find('a[target="_blank"]').exists()).toBe(false);
   });
 
@@ -357,7 +357,7 @@ describe("SendTransaction", () => {
     await sendButton!.trigger("click");
     await nextTick();
 
-    expect(addToast).toHaveBeenCalledWith("Transaction confirmed!", "success");
+    expect(addToast).toHaveBeenCalledWith("Transaction confirmed", "success");
     expect(fetchBlockscoutTokens).toHaveBeenCalledTimes(2);
   });
 });

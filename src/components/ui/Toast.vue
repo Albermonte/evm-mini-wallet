@@ -19,7 +19,7 @@ const typeStyles = {
     :duration="toast.duration"
     :type="toast.type === 'error' ? 'foreground' : 'background'"
     :class="[
-      'toast-item flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium shadow-lg sm:w-auto sm:max-w-sm',
+      'toast-item flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium shadow-lg',
       typeStyles[toast.type],
     ]"
     @update:open="
@@ -38,40 +38,75 @@ const typeStyles = {
   </ToastRoot>
 
   <ToastViewport
-    class="fixed bottom-4 right-4 z-[100] flex w-96 max-w-[calc(100%-2rem)] flex-col gap-2"
+    class="fixed inset-x-4 bottom-4 z-[100] mx-auto flex max-w-sm flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-96"
   />
 </template>
 
 <style scoped>
 .toast-item[data-state="open"] {
-  animation: toastSlideIn 300ms ease;
+  animation: toastSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .toast-item[data-state="closed"] {
-  animation: toastSlideOut 200ms ease forwards;
+  animation: toastSlideDown 200ms ease forwards;
 }
 .toast-item[data-swipe="move"] {
-  transform: translateX(var(--reka-toast-swipe-move-x));
+  transform: translateY(var(--reka-toast-swipe-move-y));
 }
 .toast-item[data-swipe="cancel"] {
-  transform: translateX(0);
+  transform: translateY(0);
   transition: transform 200ms ease;
 }
 .toast-item[data-swipe="end"] {
   animation: toastSwipeOut 100ms ease forwards;
 }
-@keyframes toastSlideIn {
+
+@keyframes toastSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+@keyframes toastSlideDown {
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+@keyframes toastSwipeOut {
+  to {
+    transform: translateY(var(--reka-toast-swipe-end-y));
+    opacity: 0;
+  }
+}
+
+@media (min-width: 640px) {
+  .toast-item[data-state="open"] {
+    animation: toastSlideInRight 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .toast-item[data-state="closed"] {
+    animation: toastSlideOutRight 200ms ease forwards;
+  }
+  .toast-item[data-swipe="move"] {
+    transform: translateX(var(--reka-toast-swipe-move-x));
+  }
+  .toast-item[data-swipe="end"] {
+    animation: toastSwipeOutRight 100ms ease forwards;
+  }
+}
+
+@keyframes toastSlideInRight {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
 }
-@keyframes toastSlideOut {
+@keyframes toastSlideOutRight {
   to {
     transform: translateX(100%);
     opacity: 0;
   }
 }
-@keyframes toastSwipeOut {
+@keyframes toastSwipeOutRight {
   to {
     transform: translateX(var(--reka-toast-swipe-end-x));
     opacity: 0;

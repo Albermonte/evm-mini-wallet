@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch, shallowRef, computed } from "vue";
+import { Wallet } from "lucide-vue-next";
 import { usePortfolio } from "../../composables/usePortfolio";
 import { formatBalance, formatCurrency } from "../../utils/format";
 import { getTokenKey } from "../../utils/tokens";
@@ -82,11 +83,18 @@ watch(
     </div>
 
     <!-- No tokens with balance -->
-    <div v-else-if="!isLoading" class="flex flex-col items-center gap-1.5 py-8 text-center">
-      <p class="text-sm font-medium text-surface-500 dark:text-surface-400">No tokens yet</p>
-      <p class="text-xs text-surface-400 dark:text-surface-500">
-        Receive, swap, or bridge tokens to see them here
-      </p>
+    <div v-else-if="!isLoading" class="flex flex-col items-center gap-3 py-12 text-center">
+      <div
+        class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
+      >
+        <Wallet class="h-6 w-6 text-surface-400 dark:text-surface-500" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <p class="text-base font-medium text-surface-700 dark:text-surface-300">No tokens yet</p>
+        <p class="text-sm text-surface-400 dark:text-surface-500">
+          Tokens will appear here once you receive funds
+        </p>
+      </div>
     </div>
   </div>
 </template>

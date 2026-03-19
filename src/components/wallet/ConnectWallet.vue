@@ -29,7 +29,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
     {
       onError(err) {
         if (isUserRejection(err)) {
-          addToast("Connection rejected", "info");
+          addToast("You cancelled the connection", "info");
         } else {
           addToast(err.message, "error");
         }
@@ -44,7 +44,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
     <div class="w-full max-w-sm">
       <div class="mb-10 text-center">
         <h1
-          class="font-display text-3xl font-bold tracking-tight text-surface-900 sm:text-4xl dark:text-surface-100"
+          class="font-display text-4xl font-extrabold tracking-tighter text-black sm:text-5xl dark:text-white"
         >
           EVM Mini Wallet
         </h1>
@@ -75,7 +75,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
           v-for="provider in providers"
           :key="provider.info.uuid"
           :disabled="isPending"
-          class="flex items-center gap-3 rounded-lg border border-surface-300 bg-white px-4 py-3.5 text-left text-sm font-medium text-surface-900 transition-all hover:border-surface-900 hover:bg-surface-50 disabled:opacity-50 dark:border-surface-600 dark:bg-surface-800 dark:text-surface-100 dark:hover:border-white dark:hover:bg-surface-700"
+          class="flex items-center gap-3 rounded-lg border-2 border-surface-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-black transition-all hover:border-black disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-white dark:hover:border-white"
           @click="handleConnect(provider)"
         >
           <img :src="provider.info.icon" :alt="provider.info.name" class="h-9 w-9 rounded-lg" />

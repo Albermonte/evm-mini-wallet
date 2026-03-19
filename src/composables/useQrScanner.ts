@@ -18,12 +18,12 @@ export function useQrScanner(options: {
     const cameraAvailable = await QrScanner.hasCamera();
     if (!cameraAvailable) {
       hasCamera.value = false;
-      error.value = "No camera found on this device";
+      error.value = "No camera available on this device";
       return;
     }
 
     if (!videoEl.value) {
-      error.value = "Video element not ready";
+      error.value = "Camera could not be started. Try again";
       return;
     }
 
@@ -49,8 +49,8 @@ export function useQrScanner(options: {
     } catch (err) {
       const message =
         err instanceof DOMException && err.name === "NotAllowedError"
-          ? "Camera permission denied"
-          : ((err as Error).message ?? "Unable to access camera");
+          ? "Camera access was denied. Allow camera in your browser settings"
+          : ((err as Error).message ?? "Could not access camera");
       error.value = message;
       hasCamera.value = err instanceof DOMException && err.name === "NotAllowedError";
       options.onError?.(err as Error);
