@@ -104,6 +104,12 @@ describe("App", () => {
       }),
     }));
 
+    vi.doMock("@tanstack/vue-query", () => ({
+      useQueryClient: () => ({
+        invalidateQueries: vi.fn(),
+      }),
+    }));
+
     const { default: App } = await import("./App.vue");
     const wrapper = mount(App, {
       global: {
