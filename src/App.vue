@@ -9,6 +9,7 @@ import {
   DialogOverlay,
   DialogContent,
   DialogTitle,
+  DialogDescription,
   DialogClose,
   TabsRoot,
   TabsList,
@@ -111,6 +112,7 @@ const showSend = ref(false);
                 <DialogTitle class="text-lg font-semibold text-surface-900 dark:text-surface-100">
                   Send
                 </DialogTitle>
+                <DialogDescription class="sr-only"> Send a transaction </DialogDescription>
                 <DialogClose
                   aria-label="Close"
                   class="rounded-lg p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-800 dark:hover:text-surface-300"
