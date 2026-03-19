@@ -1,10 +1,25 @@
 import type { Address } from "viem";
 
-export interface TokenInfo {
-  address: Address;
+interface BaseTokenInfo {
   symbol: string;
   name: string;
   decimals: number;
+}
+
+export interface NativeTokenInfo extends BaseTokenInfo {
+  address: null;
+  isNative: true;
+}
+
+export interface Erc20TokenInfo extends BaseTokenInfo {
+  address: Address;
+  isNative?: false;
+}
+
+export type TokenInfo = NativeTokenInfo | Erc20TokenInfo;
+
+export function getTokenKey(token: TokenInfo): string {
+  return token.isNative ? `native:${token.symbol}` : token.address;
 }
 
 export const erc20Abi = [

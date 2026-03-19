@@ -191,7 +191,9 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     <!-- Loading skeleton -->
     <div v-if="isLoading && transactions.length === 0" class="flex flex-col gap-1">
       <div v-for="i in 5" :key="i" class="flex items-center gap-3 px-2 py-3.5">
-        <div class="h-8 w-8 shrink-0 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700" />
+        <div
+          class="h-8 w-8 shrink-0 animate-pulse rounded-full bg-surface-200 dark:bg-surface-700"
+        />
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5">
             <div class="h-5 w-14 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
@@ -201,7 +203,9 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
         </div>
         <div class="shrink-0 text-right">
           <div class="ml-auto h-5 w-16 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
-          <div class="ml-auto mt-1.5 h-4 w-12 animate-pulse rounded bg-surface-200 dark:bg-surface-700" />
+          <div
+            class="ml-auto mt-1.5 h-4 w-12 animate-pulse rounded bg-surface-200 dark:bg-surface-700"
+          />
         </div>
       </div>
     </div>

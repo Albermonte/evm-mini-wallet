@@ -26,7 +26,13 @@ function onError() {
 
 watch(
   () => props.urls,
-  () => {
+  (nextUrls, previousUrls) => {
+    const hasChanged =
+      nextUrls.length !== previousUrls.length ||
+      nextUrls.some((url, index) => url !== previousUrls[index]);
+
+    if (!hasChanged) return;
+
     currentIndex.value = 0;
     failed.value = false;
   },

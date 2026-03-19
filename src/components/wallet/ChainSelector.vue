@@ -51,7 +51,7 @@ function handleSwitch(id: number) {
         <button
           v-for="chain in chains"
           :key="chain.id"
-          class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800 dark:active:bg-surface-700"
+          class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-100 active:bg-surface-200 dark:hover:bg-surface-800 dark:active:bg-surface-700"
           :class="
             chain.id === chainId
               ? 'text-surface-900 dark:text-white font-semibold'

@@ -49,23 +49,19 @@ const showSend = ref(false);
             <ConnectWallet v-if="!isConnected" />
 
             <div v-else class="mx-auto flex w-full max-w-lg flex-col px-3 sm:px-4">
-              <!-- Hero Balance -->
+              <!-- Hero Balance + Send -->
               <Motion
+                class="flex items-end justify-between gap-4 pb-6"
                 :initial="{ opacity: 0, y: 24 }"
                 :animate="{ opacity: 1, y: 0 }"
                 :transition="{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
               >
                 <BalanceDisplay />
-              </Motion>
-
-              <!-- Action Buttons -->
-              <Motion
-                class="flex justify-center gap-3 pb-6"
-                :initial="{ opacity: 0, y: 24 }"
-                :animate="{ opacity: 1, y: 0 }"
-                :transition="{ delay: 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
-              >
-                <BaseButton variant="primary" class="px-6" @click="showSend = true">
+                <BaseButton
+                  variant="primary"
+                  class="mb-8 shrink-0 px-5 sm:mb-10"
+                  @click="showSend = true"
+                >
                   <ArrowUpRight class="h-4 w-4" />
                   Send
                 </BaseButton>
@@ -93,10 +89,10 @@ const showSend = ref(false);
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="tokens" class="focus:outline-none">
+                  <TabsContent value="tokens" class="tab-content focus:outline-none">
                     <TokenList />
                   </TabsContent>
-                  <TabsContent value="activity" class="focus:outline-none">
+                  <TabsContent value="activity" class="tab-content focus:outline-none">
                     <TransactionList />
                   </TabsContent>
                 </TabsRoot>
@@ -161,6 +157,16 @@ const showSend = ref(false);
 @keyframes sheetSlideUp {
   from {
     transform: translateY(100%);
+  }
+}
+
+.tab-content[data-state="active"] {
+  animation: tabContentIn 200ms ease;
+}
+@keyframes tabContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 }
 </style>

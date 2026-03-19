@@ -340,7 +340,7 @@ function handleScanned(value: string) {
         <PopoverTrigger as-child>
           <button
             type="button"
-            class="flex w-full items-center gap-2 rounded-lg border border-surface-300 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 dark:border-surface-600 dark:bg-surface-900 dark:hover:bg-surface-800"
+            class="flex w-full items-center gap-2 rounded-lg border border-surface-300 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-100 dark:border-surface-600 dark:bg-surface-900 dark:hover:bg-surface-800"
             :disabled="isSending || isConfirming"
           >
             <TokenLogo :urls="currentLogoUrls" :symbol="currentSymbol" size="h-6 w-6" />
@@ -365,7 +365,7 @@ function handleScanned(value: string) {
             <!-- Native token option -->
             <button
               type="button"
-              class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
+              class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-100 active:bg-surface-200 dark:hover:bg-surface-800"
               :class="
                 !isTokenSend
                   ? 'text-surface-900 dark:text-white font-semibold'
@@ -390,7 +390,7 @@ function handleScanned(value: string) {
               v-for="tb in erc20Tokens"
               :key="tb.token.address"
               type="button"
-              class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-50 active:bg-surface-100 dark:hover:bg-surface-800"
+              class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-surface-100 active:bg-surface-200 dark:hover:bg-surface-800"
               :class="
                 selectedTokenAddress === tb.token.address
                   ? 'text-surface-900 dark:text-white font-semibold'
@@ -430,7 +430,7 @@ function handleScanned(value: string) {
         </div>
         <button
           type="button"
-          class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-surface-300 bg-white text-surface-500 transition-colors hover:bg-surface-50 hover:text-surface-900 dark:border-surface-600 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-surface-300 bg-white text-surface-500 transition-colors hover:bg-surface-100 hover:text-surface-900 dark:border-surface-600 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="isSending || isConfirming"
           aria-label="Scan QR code"
           @click="showScanner = true"
