@@ -25,6 +25,7 @@ import TokenList from "./components/wallet/TokenList.vue";
 import SendTransaction from "./components/actions/SendTransaction.vue";
 import TransactionList from "./components/actions/TransactionList.vue";
 import Toast from "./components/ui/Toast.vue";
+import SettingsButton from "./components/ui/SettingsButton.vue";
 
 const { isConnected } = useConnection();
 const showSend = ref(false);
@@ -148,6 +149,7 @@ const activeTab = ref("tokens");
           </DialogPortal>
         </DialogRoot>
 
+        <SettingsButton />
         <Toast />
       </div>
     </TooltipProvider>
