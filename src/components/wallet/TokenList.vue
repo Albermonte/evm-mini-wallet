@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch, shallowRef, computed } from "vue";
 import { usePortfolio } from "../../composables/usePortfolio";
-import { formatBalance } from "../../utils/format";
+import { formatBalance, formatCurrency } from "../../utils/format";
 import { getTokenKey } from "../../utils/tokens";
 import TokenLogo from "../ui/TokenLogo.vue";
 
@@ -58,9 +58,14 @@ watch(
           </p>
         </div>
 
-        <p class="text-sm font-medium text-surface-900 dark:text-surface-100">
-          {{ formatBalance(tb.balance, tb.token.decimals) }}
-        </p>
+        <div class="text-right">
+          <p class="text-sm font-medium text-surface-900 dark:text-surface-100">
+            {{ formatBalance(tb.balance, tb.token.decimals) }}
+          </p>
+          <p v-if="tb.fiatValue !== null" class="text-xs text-surface-400 dark:text-surface-500">
+            {{ formatCurrency(tb.fiatValue) }}
+          </p>
+        </div>
       </div>
 
       <button

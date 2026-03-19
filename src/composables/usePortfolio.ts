@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { useChainId, useConnection } from "@wagmi/vue";
 import { computed, ref, watch, type Ref } from "vue";
 import { fetchBlockscoutTokens, type TokenWithBalance } from "../utils/blockscout";
+import { getCachedPrices, setCachedPrices } from "../utils/price-cache";
 import { calculateFiatValue, fetchTokenPrices } from "../utils/prices";
 import { getTokenKey } from "../utils/tokens";
 
@@ -80,14 +81,21 @@ export function usePortfolio(options: { vsCurrency?: string } = {}) {
     queryFn: async () => {
       if (!chainId.value || pricedTokens.value.length === 0) return {};
 
-      return fetchTokenPrices(
+      const cached = await getCachedPrices(chainId.value, vsCurrency);
+      if (cached) {
+        const tokenKeys = pricedTokens.value.map((t) => getTokenKey(t.token));
+        if (tokenKeys.every((key) => key in cached)) return cached;
+      }
+
+      const fresh = await fetchTokenPrices(
         chainId.value,
         pricedTokens.value.map((token) => token.token),
         vsCurrency,
       );
+      await setCachedPrices(chainId.value, vsCurrency, fresh);
+      return fresh;
     },
-    staleTime: 30_000,
-    refetchInterval: 30_000,
+    staleTime: Infinity,
   });
 
   const tokens = computed(() => {
