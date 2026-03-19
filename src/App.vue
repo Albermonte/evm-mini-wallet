@@ -28,6 +28,7 @@ import Toast from "./components/ui/Toast.vue";
 
 const { isConnected } = useConnection();
 const showSend = ref(false);
+const activeTab = ref("tokens");
 </script>
 
 <template>
@@ -83,20 +84,29 @@ const showSend = ref(false);
                 :animate="{ opacity: 1, y: 0 }"
                 :transition="{ delay: 0.25, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
               >
-                <TabsRoot default-value="tokens" class="pb-6">
-                  <TabsList class="mb-4 flex border-b border-surface-200 dark:border-surface-800">
+                <TabsRoot v-model="activeTab" class="pb-6">
+                  <TabsList
+                    class="relative mb-4 flex border-b border-surface-200 dark:border-surface-800"
+                  >
                     <TabsTrigger
                       value="tokens"
-                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-bold text-surface-400 transition-all data-[state=active]:border-black data-[state=active]:text-black dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
+                      class="flex-1 px-4 py-2.5 text-sm font-bold text-surface-400 transition-colors data-[state=active]:text-black dark:text-surface-500 dark:data-[state=active]:text-white"
                     >
                       Tokens
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      class="flex-1 border-b-2 border-transparent px-4 py-2.5 text-sm font-bold text-surface-400 transition-all data-[state=active]:border-black data-[state=active]:text-black dark:text-surface-500 dark:data-[state=active]:border-white dark:data-[state=active]:text-white"
+                      class="flex-1 px-4 py-2.5 text-sm font-bold text-surface-400 transition-colors data-[state=active]:text-black dark:text-surface-500 dark:data-[state=active]:text-white"
                     >
                       Activity
                     </TabsTrigger>
+                    <div
+                      class="absolute bottom-0 left-0 h-0.5 w-1/2 bg-black transition-transform duration-300 dark:bg-white"
+                      :style="{
+                        transform: activeTab === 'tokens' ? 'translateX(0)' : 'translateX(100%)',
+                        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                      }"
+                    />
                   </TabsList>
 
                   <TabsContent value="tokens" class="tab-content focus:outline-none">
@@ -157,16 +167,32 @@ const showSend = ref(false);
 .send-overlay {
   animation: overlayShow 250ms ease-out;
 }
+.send-overlay[data-state="closed"] {
+  animation: overlayHide 150ms ease forwards;
+}
 .send-sheet {
   animation: sheetSlideUp 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.send-sheet[data-state="closed"] {
+  animation: sheetSlideDown 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes overlayShow {
   from {
     opacity: 0;
   }
 }
+@keyframes overlayHide {
+  to {
+    opacity: 0;
+  }
+}
 @keyframes sheetSlideUp {
   from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheetSlideDown {
+  to {
     transform: translateY(100%);
   }
 }

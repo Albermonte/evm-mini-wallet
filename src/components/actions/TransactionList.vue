@@ -213,12 +213,13 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     <!-- Transaction list -->
     <div v-else-if="recentTransactions.length > 0" class="flex flex-col gap-1">
       <a
-        v-for="tx in recentTransactions"
+        v-for="(tx, i) in recentTransactions"
         :key="tx.hash"
         :href="getExplorerTxUrl(chainId, tx.hash)"
         target="_blank"
         rel="noopener"
-        class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
+        class="tx-row flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
+        :style="{ '--stagger': i }"
       >
         <!-- Action icon -->
         <div
@@ -297,7 +298,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     <!-- Empty state -->
     <div v-else-if="!isLoading" class="flex flex-col items-center gap-3 py-12 text-center">
       <div
-        class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
+        class="empty-float flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
       >
         <Clock class="h-6 w-6 text-surface-400 dark:text-surface-500" />
       </div>
@@ -310,3 +311,30 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     </div>
   </div>
 </template>
+
+<style scoped>
+.tx-row {
+  animation: fadeSlideUp 400ms calc(var(--stagger) * 50ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.empty-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+</style>

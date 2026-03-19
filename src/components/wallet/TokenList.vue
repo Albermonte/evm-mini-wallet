@@ -13,6 +13,10 @@ const extraTokens = computed(() =>
   tokens.value.filter((token) => !trustedTokenKeys.value.has(getTokenKey(token.token))),
 );
 
+const trustedTokens = computed(() =>
+  tokens.value.filter((token) => trustedTokenKeys.value.has(getTokenKey(token.token))),
+);
+
 watch(
   scopeKey,
   () => {
@@ -38,10 +42,10 @@ watch(
 
     <!-- Token list -->
     <div v-else-if="tokens.length > 0" class="flex flex-col gap-1">
+      <!-- Trusted tokens (always visible) -->
       <div
-        v-for="tb in tokens"
+        v-for="tb in trustedTokens"
         :key="getTokenKey(tb.token)"
-        v-show="trustedTokenKeys.has(getTokenKey(tb.token)) || expanded"
         class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
       >
         <TokenLogo
@@ -69,6 +73,51 @@ watch(
         </div>
       </div>
 
+      <!-- Extra tokens (expandable with animation) -->
+      <div
+        v-if="extraTokens.length > 0"
+        class="grid transition-[grid-template-rows] duration-300"
+        :style="{
+          gridTemplateRows: expanded ? '1fr' : '0fr',
+          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        }"
+      >
+        <div class="overflow-hidden">
+          <div
+            v-for="tb in extraTokens"
+            :key="getTokenKey(tb.token)"
+            class="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
+          >
+            <TokenLogo
+              :urls="tb.logoUrls"
+              :symbol="tb.token.symbol"
+              @logo-loaded="markTokenTrusted(getTokenKey(tb.token))"
+            />
+
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-surface-900 dark:text-surface-100">
+                {{ tb.token.symbol }}
+              </p>
+              <p class="truncate text-xs text-surface-400 dark:text-surface-500">
+                {{ tb.token.name }}
+              </p>
+            </div>
+
+            <div class="text-right">
+              <p class="text-sm font-medium text-surface-900 dark:text-surface-100">
+                {{ formatBalance(tb.balance, tb.token.decimals) }}
+              </p>
+              <p
+                v-if="tb.fiatValue !== null"
+                class="text-xs text-surface-400 dark:text-surface-500"
+              >
+                {{ formatCurrency(tb.fiatValue) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <button
         v-if="extraTokens.length > 0"
         class="mt-1 w-full rounded-lg py-2 text-sm font-medium text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600 dark:text-surface-500 dark:hover:bg-surface-800/50 dark:hover:text-surface-300"
@@ -85,7 +134,7 @@ watch(
     <!-- No tokens with balance -->
     <div v-else-if="!isLoading" class="flex flex-col items-center gap-3 py-12 text-center">
       <div
-        class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
+        class="empty-float flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
       >
         <Wallet class="h-6 w-6 text-surface-400 dark:text-surface-500" />
       </div>
@@ -98,3 +147,19 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+.empty-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+</style>

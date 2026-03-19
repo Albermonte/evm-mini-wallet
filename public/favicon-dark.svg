@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none">
   <defs>
     <linearGradient id="bg" x1="24" y1="2" x2="24" y2="46" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#333"/>
-      <stop offset="100%" stop-color="#000"/>
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="100%" stop-color="#fff"/>
     </linearGradient>
   </defs>
   <path fill="url(#bg)" d="M40 2H8a6 6 0 0 0-6 6v32a6 6 0 0 0 6 6h32a6 6 0 0 0 6-6V8a6 6 0 0 0-6-6"/>
@@ -10,6 +10,6 @@
     <path fill="#fff" d="M40 2H8a6 6 0 0 0-6 6v32a6 6 0 0 0 6 6h32a6 6 0 0 0 6-6V8a6 6 0 0 0-6-6"/>
   </mask>
   <g mask="url(#a)">
-    <path fill="#fff" d="M33 -2 L24 24 L34 24 L25 50 H15 L24 24 H14 L23 -2 Z"/>
+    <path fill="#000" d="M33 -2 L24 24 L34 24 L25 50 H15 L24 24 H14 L23 -2 Z"/>
   </g>
 </svg>

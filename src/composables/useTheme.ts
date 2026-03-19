@@ -1,6 +1,7 @@
-import { shallowRef, watch } from "vue";
+import { computed, shallowRef, watch } from "vue";
 
 const isDark = shallowRef(false);
+const logoSrc = computed(() => (isDark.value ? "/favicon-dark.svg" : "/favicon.svg"));
 let hasInitialized = false;
 
 function canUseBrowser() {
@@ -14,6 +15,8 @@ function canUseBrowser() {
 function applyTheme(value: boolean) {
   if (!canUseBrowser()) return;
   document.documentElement.classList.toggle("dark", value);
+  const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (favicon) favicon.href = value ? "/favicon-dark.svg" : "/favicon.svg";
 }
 
 function initTheme() {
@@ -42,5 +45,5 @@ export function useTheme() {
     isDark.value = !isDark.value;
   }
 
-  return { isDark, toggle };
+  return { isDark, logoSrc, toggle };
 }

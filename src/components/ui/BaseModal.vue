@@ -45,16 +45,33 @@ const open = defineModel<boolean>({ default: false });
 .dialog-overlay {
   animation: overlayShow 200ms ease;
 }
+.dialog-overlay[data-state="closed"] {
+  animation: overlayHide 150ms ease forwards;
+}
 .dialog-content {
-  animation: contentShow 200ms ease;
+  animation: contentShow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dialog-content[data-state="closed"] {
+  animation: contentHide 150ms ease forwards;
 }
 @keyframes overlayShow {
   from {
     opacity: 0;
   }
 }
+@keyframes overlayHide {
+  to {
+    opacity: 0;
+  }
+}
 @keyframes contentShow {
   from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+@keyframes contentHide {
+  to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.95);
   }

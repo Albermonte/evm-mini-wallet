@@ -18,7 +18,7 @@ withDefaults(
   <button
     :type="type"
     :class="[
-      'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-bold transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm',
+      'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-bold transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm active:scale-[0.97]',
       {
         'bg-black text-white hover:bg-surface-800 active:bg-surface-700 dark:bg-white dark:text-black dark:hover:bg-surface-100 dark:active:bg-surface-200':
           variant === 'primary' || !variant,

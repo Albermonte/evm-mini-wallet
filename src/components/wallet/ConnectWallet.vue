@@ -42,7 +42,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
 <template>
   <div class="flex flex-1 flex-col items-center justify-center px-5 py-10 sm:py-16">
     <div class="w-full max-w-sm">
-      <div class="mb-10 text-center">
+      <div class="connect-entrance mb-10 text-center">
         <h1
           class="font-display text-4xl font-extrabold tracking-tighter text-black sm:text-5xl dark:text-white"
         >
@@ -57,7 +57,8 @@ function handleConnect(detail: EIP6963ProviderDetail) {
       <div class="mb-10 flex flex-col gap-2">
         <p
           v-if="providers.length === 0"
-          class="rounded-lg border border-dashed border-surface-400 px-4 py-8 text-center text-sm text-surface-500 dark:border-surface-500 dark:text-surface-400"
+          class="connect-entrance rounded-lg border border-dashed border-surface-400 px-4 py-8 text-center text-sm text-surface-500 dark:border-surface-500 dark:text-surface-400"
+          style="--entrance-delay: 150ms"
         >
           No wallet detected.
           <a
@@ -72,10 +73,11 @@ function handleConnect(detail: EIP6963ProviderDetail) {
         </p>
 
         <button
-          v-for="provider in providers"
+          v-for="(provider, i) in providers"
           :key="provider.info.uuid"
           :disabled="isPending"
-          class="flex items-center gap-3 rounded-lg border-2 border-surface-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-black transition-all hover:border-black disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-white dark:hover:border-white"
+          class="connect-entrance flex items-center gap-3 rounded-lg border-2 border-surface-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-black transition-all hover:border-black active:scale-[0.97] disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-white dark:hover:border-white"
+          :style="{ '--entrance-delay': 150 + i * 80 + 'ms' }"
           @click="handleConnect(provider)"
         >
           <img :src="provider.info.icon" :alt="provider.info.name" class="h-9 w-9 rounded-lg" />
@@ -86,7 +88,10 @@ function handleConnect(detail: EIP6963ProviderDetail) {
       </div>
 
       <!-- Supported chains -->
-      <div class="flex flex-col items-center gap-2.5">
+      <div
+        class="connect-entrance flex flex-col items-center gap-2.5"
+        style="--entrance-delay: 350ms"
+      >
         <span class="text-xs text-surface-400 dark:text-surface-500">Supported networks</span>
         <div class="flex flex-wrap justify-center gap-2">
           <div
@@ -104,3 +109,16 @@ function handleConnect(detail: EIP6963ProviderDetail) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.connect-entrance {
+  animation: entrance 500ms var(--entrance-delay, 0ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes entrance {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+</style>
