@@ -144,7 +144,11 @@ export function usePortfolio(options: { vsCurrency?: string } = {}) {
   }
 
   return {
-    isLoading: computed(() => balancesQuery.isPending.value || pricesQuery.isPending.value),
+    isLoading: computed(
+      () =>
+        balancesQuery.isPending.value ||
+        (pricedTokens.value.length > 0 && pricesQuery.isPending.value),
+    ),
     markTokenTrusted,
     portfolioTotalFiat,
     scopeKey,
