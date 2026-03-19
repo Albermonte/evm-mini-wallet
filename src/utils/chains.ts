@@ -70,4 +70,27 @@ export function getExplorerTxUrl(chainId: number, hash: string): string {
   return `${meta.explorerUrl}/tx/${hash}`;
 }
 
-export const supportedChains = Object.values(chainMeta).map((m) => m.chain) as [Chain, ...Chain[]];
+const LAST_CHAIN_KEY = "last-chain-id";
+
+export function getLastChainId(): number | null {
+  try {
+    const stored = localStorage.getItem(LAST_CHAIN_KEY);
+    return stored ? Number(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLastChainId(chainId: number) {
+  try {
+    localStorage.setItem(LAST_CHAIN_KEY, String(chainId));
+  } catch {}
+}
+
+const allChains = Object.values(chainMeta).map((m) => m.chain);
+const lastId = getLastChainId();
+if (lastId && allChains.some((c) => c.id === lastId)) {
+  const idx = allChains.findIndex((c) => c.id === lastId);
+  allChains.unshift(allChains.splice(idx, 1)[0]);
+}
+export const supportedChains = allChains as [Chain, ...Chain[]];

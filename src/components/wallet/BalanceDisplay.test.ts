@@ -24,7 +24,7 @@ describe("BalanceDisplay", () => {
     expect(wrapper.find(".animate-pulse").exists()).toBe(true);
   });
 
-  it("renders the aggregated fiat balance and usd badge", async () => {
+  it("renders the aggregated fiat balance", async () => {
     vi.doMock("../../composables/usePortfolio", () => ({
       usePortfolio: () => ({
         isLoading: ref(false),
@@ -36,10 +36,9 @@ describe("BalanceDisplay", () => {
     const wrapper = mount(BalanceDisplay);
 
     expect(wrapper.text()).toContain("$1,234.56");
-    expect(wrapper.text()).toContain("USD");
   });
 
-  it("renders an empty fallback when no priced portfolio total is available", async () => {
+  it("renders $0.00 when no priced portfolio total is available", async () => {
     vi.doMock("../../composables/usePortfolio", () => ({
       usePortfolio: () => ({
         isLoading: ref(false),
@@ -50,6 +49,6 @@ describe("BalanceDisplay", () => {
     const { default: BalanceDisplay } = await import("./BalanceDisplay.vue");
     const wrapper = mount(BalanceDisplay);
 
-    expect(wrapper.text()).toContain("--");
+    expect(wrapper.text()).toContain("$0.00");
   });
 });

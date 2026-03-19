@@ -24,18 +24,22 @@ function cacheKey(chainId: number, vsCurrency: string): string {
   return `${chainId}:${vsCurrency}`;
 }
 
+function idbGet(db: IDBDatabase, key: string): Promise<CachedPrices | undefined> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const request = tx.objectStore(STORE_NAME).get(key);
+    request.onsuccess = () => resolve(request.result as CachedPrices | undefined);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 export async function getCachedPrices(
   chainId: number,
   vsCurrency: string,
 ): Promise<PriceMap | null> {
   try {
     const db = await openDb();
-    const entry = await new Promise<CachedPrices | undefined>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const request = tx.objectStore(STORE_NAME).get(cacheKey(chainId, vsCurrency));
-      request.onsuccess = () => resolve(request.result as CachedPrices | undefined);
-      request.onerror = () => reject(request.error);
-    });
+    const entry = await idbGet(db, cacheKey(chainId, vsCurrency));
     db.close();
 
     if (!entry) return null;
@@ -56,13 +60,7 @@ export async function setCachedPrices(
 
     // Merge with existing cached prices so tokens that are no longer queried
     // keep their cached value until the whole entry expires.
-    const existing = await new Promise<CachedPrices | undefined>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const request = tx.objectStore(STORE_NAME).get(cacheKey(chainId, vsCurrency));
-      request.onsuccess = () => resolve(request.result as CachedPrices | undefined);
-      request.onerror = () => reject(request.error);
-    });
-
+    const existing = await idbGet(db, cacheKey(chainId, vsCurrency));
     const merged: PriceMap = { ...existing?.prices, ...prices };
     const entry: CachedPrices = { prices: merged, fetchedAt: Date.now() };
 

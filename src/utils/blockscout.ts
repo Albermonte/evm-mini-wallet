@@ -17,6 +17,32 @@ const blockscoutApiUrls: Record<number, string> = {
   // BSC (56) has no Blockscout instance
 };
 
+function createCachedFetcher<T>() {
+  const cache = new Map<string, { data: T; timestamp: number }>();
+  const pending = new Map<string, Promise<T>>();
+
+  return function cachedFetch(key: string, fetcher: () => Promise<T>): Promise<T> {
+    const cached = cache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) return Promise.resolve(cached.data);
+
+    const inflight = pending.get(key);
+    if (inflight) return inflight;
+
+    const request = (async () => {
+      try {
+        const data = await fetcher();
+        cache.set(key, { data, timestamp: Date.now() });
+        return data;
+      } finally {
+        pending.delete(key);
+      }
+    })();
+
+    pending.set(key, request);
+    return request;
+  };
+}
+
 interface BlockscoutTokenItem {
   token: {
     address_hash: string;
@@ -40,13 +66,8 @@ export interface TokenWithBalance {
   logoUrls: string[];
 }
 
-interface CacheEntry {
-  data: TokenWithBalance[];
-  timestamp: number;
-}
-
-const tokenCache = new Map<string, CacheEntry>();
-const pendingRequests = new Map<string, Promise<TokenWithBalance[]>>();
+const fetchCachedTokens = createCachedFetcher<TokenWithBalance[]>();
+const fetchCachedTransactions = createCachedFetcher<Transaction[]>();
 
 function getCacheKey(chainId: number, address: string): string {
   return `${chainId}:${address.toLowerCase()}`;
@@ -122,31 +143,17 @@ async function fetchTokensViaRpc(chainId: number, address: Address): Promise<Tok
   return tokenBalances;
 }
 
-export async function fetchBlockscoutTokens(
+export function fetchBlockscoutTokens(
   chainId: number,
   address: Address,
 ): Promise<TokenWithBalance[]> {
   const key = getCacheKey(chainId, address);
 
-  // Return cached data if fresh
-  const cached = tokenCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data;
-  }
-
-  // Deduplicate in-flight requests
-  const pending = pendingRequests.get(key);
-  if (pending) return pending;
-
-  const request = (async () => {
+  return fetchCachedTokens(key, async () => {
     try {
-      // Try Blockscout API first
       const baseUrl = blockscoutApiUrls[chainId];
       if (!baseUrl) {
-        // No Blockscout instance (e.g. BSC) — go straight to RPC
-        const result = await fetchTokensViaRpc(chainId, address);
-        tokenCache.set(key, { data: result, timestamp: Date.now() });
-        return result;
+        return await fetchTokensViaRpc(chainId, address);
       }
 
       const response = await fetch(`${baseUrl}/api/v2/addresses/${address}/tokens?type=ERC-20`);
@@ -158,7 +165,6 @@ export async function fetchBlockscoutTokens(
         .filter((item) => item.token.type === "ERC-20")
         .map((item) => {
           const tokenAddress = item.token.address_hash as Address;
-          // Construct direct logo URLs (no API calls) + Blockscout's icon as fallback
           const logoUrls = getTokenLogoUrls(chainId, tokenAddress);
           if (item.token.icon_url) {
             logoUrls.push(item.token.icon_url);
@@ -174,26 +180,15 @@ export async function fetchBlockscoutTokens(
             logoUrls,
           };
         });
-      const tokensWithNative = nativeToken ? [nativeToken, ...result] : result;
-
-      tokenCache.set(key, { data: tokensWithNative, timestamp: Date.now() });
-      return tokensWithNative;
+      return nativeToken ? [nativeToken, ...result] : result;
     } catch {
-      // API failed — fall back to RPC with well-known token list
       try {
-        const result = await fetchTokensViaRpc(chainId, address);
-        tokenCache.set(key, { data: result, timestamp: Date.now() });
-        return result;
+        return await fetchTokensViaRpc(chainId, address);
       } catch {
         return [];
       }
-    } finally {
-      pendingRequests.delete(key);
     }
-  })();
-
-  pendingRequests.set(key, request);
-  return request;
+  });
 }
 
 // --- Transaction history ---
@@ -245,34 +240,23 @@ function extractProtocol(info: BlockscoutAddressInfo | null): string | null {
   return protocolTag?.name ?? null;
 }
 
-const txCache = new Map<string, { data: Transaction[]; timestamp: number }>();
-const pendingTxRequests = new Map<string, Promise<Transaction[]>>();
-
-export async function fetchBlockscoutTransactions(
+export function fetchBlockscoutTransactions(
   chainId: number,
   address: Address,
 ): Promise<Transaction[]> {
   const baseUrl = blockscoutApiUrls[chainId];
-  if (!baseUrl) return [];
+  if (!baseUrl) return Promise.resolve([]);
 
   const key = `tx:${getCacheKey(chainId, address)}`;
 
-  const cached = txCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data;
-  }
-
-  const pending = pendingTxRequests.get(key);
-  if (pending) return pending;
-
-  const request = (async () => {
+  return fetchCachedTransactions(key, async () => {
     try {
       const response = await fetch(`${baseUrl}/api/v2/addresses/${address}/transactions`);
       if (!response.ok) return [];
 
       const data: BlockscoutTxResponse = await response.json();
 
-      const result: Transaction[] = data.items.map((item) => ({
+      return data.items.map((item) => ({
         hash: item.hash,
         from: item.from.hash,
         to: item.to?.hash ?? null,
@@ -286,18 +270,10 @@ export async function fetchBlockscoutTransactions(
         transactionTypes: item.transaction_types,
         protocol: extractProtocol(item.to),
       }));
-
-      txCache.set(key, { data: result, timestamp: Date.now() });
-      return result;
     } catch {
       return [];
-    } finally {
-      pendingTxRequests.delete(key);
     }
-  })();
-
-  pendingTxRequests.set(key, request);
-  return request;
+  });
 }
 
 export function getExplorerAddressUrl(chainId: number, address: string): string {

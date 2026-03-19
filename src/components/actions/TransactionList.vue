@@ -14,7 +14,7 @@ import {
 } from "lucide-vue-next";
 import { fetchBlockscoutTransactions, type Transaction } from "../../utils/blockscout";
 import { getExplorerTxUrl } from "../../utils/chains";
-import { truncateAddress } from "../../utils/format";
+import { formatBalance, truncateAddress } from "../../utils/format";
 import { formatUnits } from "viem";
 
 const { address } = useConnection();
@@ -150,10 +150,7 @@ function subtitle(tx: Transaction): string {
 }
 
 function formatValue(value: string): string {
-  const formatted = formatUnits(BigInt(value), 18);
-  const [integer, decimal] = formatted.split(".");
-  if (!decimal || decimal === "0") return integer ?? "0";
-  return `${integer}.${decimal.slice(0, 4)}`;
+  return formatBalance(BigInt(value), 18, 4);
 }
 
 function hasValue(tx: Transaction): boolean {

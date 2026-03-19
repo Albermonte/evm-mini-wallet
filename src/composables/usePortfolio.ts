@@ -101,7 +101,7 @@ export function usePortfolio(options: { vsCurrency?: string } = {}) {
   const tokens = computed(() => {
     const prices = pricesQuery.data.value ?? {};
 
-    return tokenBalances.value.map<PortfolioToken>((token) => {
+    const mapped = tokenBalances.value.map<PortfolioToken>((token) => {
       const tokenKey = getTokenKey(token.token);
       const fiatPrice = prices[tokenKey] ?? null;
 
@@ -110,6 +110,14 @@ export function usePortfolio(options: { vsCurrency?: string } = {}) {
         fiatPrice,
         fiatValue: calculateFiatValue(token.balance, token.token.decimals, fiatPrice),
       };
+    });
+
+    return mapped.sort((a, b) => {
+      if (a.token.isNative !== b.token.isNative) return a.token.isNative ? -1 : 1;
+      if (a.fiatValue !== null && b.fiatValue !== null) return b.fiatValue - a.fiatValue;
+      if (a.fiatValue !== null) return -1;
+      if (b.fiatValue !== null) return 1;
+      return 0;
     });
   });
 
@@ -129,6 +137,7 @@ export function usePortfolio(options: { vsCurrency?: string } = {}) {
   });
 
   function markTokenTrusted(tokenKey: string) {
+    if (scopeTrustState.value.value.has(tokenKey)) return;
     scopeTrustState.value.value.add(tokenKey);
     scopeTrustState.value.value = new Set(scopeTrustState.value.value);
   }

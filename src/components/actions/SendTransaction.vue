@@ -143,12 +143,14 @@ async function setMax() {
   if (!nativeBalance.value || !address.value || !client.value) return;
 
   try {
-    const gasLimit = await estimateGas(client.value, {
-      account: address.value,
-      to: recipient.value as `0x${string}`,
-      value: 0n,
-    });
-    const feeEstimate = await estimateFeesPerGas(client.value);
+    const [gasLimit, feeEstimate] = await Promise.all([
+      estimateGas(client.value, {
+        account: address.value,
+        to: recipient.value as `0x${string}`,
+        value: 0n,
+      }),
+      estimateFeesPerGas(client.value),
+    ]);
     const feePerGas = feeEstimate.maxFeePerGas ?? feeEstimate.gasPrice;
 
     if (!feePerGas) {

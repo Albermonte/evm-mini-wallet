@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useChainId, useSwitchChain } from "@wagmi/vue";
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from "reka-ui";
 import { ChevronDown, Check } from "lucide-vue-next";
-import { chainMeta, getChainLogo } from "../../utils/chains";
+import { chainMeta, getChainLogo, saveLastChainId } from "../../utils/chains";
 import { useToast } from "../../composables/useToast";
 
 const chainId = useChainId();
@@ -16,6 +16,7 @@ function handleSwitch(id: number) {
     { chainId: id },
     {
       onSuccess() {
+        saveLastChainId(id);
         open.value = false;
       },
       onError(err) {

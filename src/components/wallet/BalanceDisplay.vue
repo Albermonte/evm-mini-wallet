@@ -13,18 +13,11 @@ const { isLoading, portfolioTotalFiat } = usePortfolio();
     </div>
 
     <p
-      v-else-if="portfolioTotalFiat !== null"
+      v-else
       class="font-display text-5xl font-extrabold tracking-tighter text-surface-900 sm:text-6xl dark:text-white"
       style="overflow-wrap: break-word; min-width: 0"
     >
-      {{ formatCurrency(portfolioTotalFiat) }}
-    </p>
-
-    <p
-      v-else
-      class="font-display text-5xl font-extrabold tracking-tighter text-surface-900 sm:text-6xl dark:text-white"
-    >
-      {{ formatCurrency(0) }}
+      {{ formatCurrency(portfolioTotalFiat ?? 0) }}
     </p>
   </div>
 </template>
