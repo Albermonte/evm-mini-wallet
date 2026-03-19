@@ -22,7 +22,7 @@ import { formatBalance } from "../../utils/format";
 import { getExplorerTxUrl } from "../../utils/chains";
 import { useToast } from "../../composables/useToast";
 import { calculateMaxSendable, resolveTransactionChainId } from "../../utils/transactions";
-import { erc20Abi } from "../../utils/tokens";
+import { erc20Abi, type Erc20TokenInfo } from "../../utils/tokens";
 import {
   fetchTokenBalances,
   clearTokenCache,
@@ -58,7 +58,11 @@ async function fetchAvailableTokens() {
 // Token selection: null = native token
 const selectedTokenAddress = ref<Address | null>(null);
 
-const erc20Tokens = computed(() => fetchedTokens.value.filter((t) => !t.token.isNative));
+const erc20Tokens = computed(() =>
+  fetchedTokens.value.filter(
+    (t): t is TokenWithBalance & { token: Erc20TokenInfo } => !t.token.isNative,
+  ),
+);
 
 const selectedEntry = computed(() =>
   erc20Tokens.value.find((t) => t.token.address === selectedTokenAddress.value),
@@ -328,7 +332,7 @@ function handleScanned(value: string) {
   // If ERC-20 transfer URI, try to select matching token and fill amount
   if (parsed.token) {
     const matchingToken = fetchedTokens.value.find(
-      (t) => t.token.address.toLowerCase() === parsed.token!.toLowerCase(),
+      (t) => t.token.address?.toLowerCase() === parsed.token!.toLowerCase(),
     );
     if (matchingToken) {
       selectToken(matchingToken);

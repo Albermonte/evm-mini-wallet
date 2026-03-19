@@ -14,6 +14,7 @@ const { videoEl, start, stop, error } = useQrScanner({
     emit("scanned", result);
   },
 });
+void videoEl; // bound via ref="videoEl" in template
 
 onMounted(start);
 
