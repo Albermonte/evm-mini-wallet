@@ -62,6 +62,11 @@ describe("App", () => {
           return () => h("div", slots.default?.());
         },
       }),
+      DialogDescription: defineComponent({
+        setup(_p, { slots }) {
+          return () => h("p", slots.default?.());
+        },
+      }),
       DialogClose: defineComponent({
         setup(_p, { slots }) {
           return () => h("button", { "data-testid": "dialog-close" }, slots.default?.());
@@ -113,6 +118,7 @@ describe("App", () => {
             template: '<button data-testid="base-button"><slot /></button>',
           },
           Toast: { template: '<div data-testid="toast" />' },
+          SettingsButton: { template: '<div data-testid="settings-button" />' },
         },
       },
     });

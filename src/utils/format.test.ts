@@ -21,6 +21,8 @@ describe("truncateAddress", () => {
   });
 
   it("shortens long addresses", () => {
-    expect(truncateAddress("0x1111111111111111111111111111111111111111")).toBe("0x1111...1111");
+    expect(truncateAddress("0x1111111111111111111111111111111111111111")).toBe(
+      "0x11111111...1111111111",
+    );
   });
 });

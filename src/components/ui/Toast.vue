@@ -16,6 +16,7 @@ const typeStyles = {
   <ToastRoot
     v-for="toast in toasts"
     :key="toast.id"
+    force-mount
     :duration="toast.duration"
     :type="toast.type === 'error' ? 'foreground' : 'background'"
     :class="[
@@ -38,17 +39,42 @@ const typeStyles = {
   </ToastRoot>
 
   <ToastViewport
-    class="fixed inset-x-4 bottom-4 z-[100] mx-auto flex max-w-sm flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-96"
+    class="fixed inset-x-4 top-4 z-[100] mx-auto flex max-w-sm flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-96"
   />
 </template>
 
 <style scoped>
 .toast-item[data-state="open"] {
-  animation: toastSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: toastEnter 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .toast-item[data-state="closed"] {
-  animation: toastSlideDown 200ms ease forwards;
+  animation: toastExit 200ms cubic-bezier(0.4, 0, 1, 1) forwards;
 }
+
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* Swipe gestures */
 .toast-item[data-swipe="move"] {
   transform: translateY(var(--reka-toast-swipe-move-y));
 }
@@ -60,18 +86,6 @@ const typeStyles = {
   animation: toastSwipeOut 100ms ease forwards;
 }
 
-@keyframes toastSlideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-@keyframes toastSlideDown {
-  to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
 @keyframes toastSwipeOut {
   to {
     transform: translateY(var(--reka-toast-swipe-end-y));
@@ -80,12 +94,6 @@ const typeStyles = {
 }
 
 @media (min-width: 640px) {
-  .toast-item[data-state="open"] {
-    animation: toastSlideInRight 300ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .toast-item[data-state="closed"] {
-    animation: toastSlideOutRight 200ms ease forwards;
-  }
   .toast-item[data-swipe="move"] {
     transform: translateX(var(--reka-toast-swipe-move-x));
   }
@@ -94,18 +102,6 @@ const typeStyles = {
   }
 }
 
-@keyframes toastSlideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-@keyframes toastSlideOutRight {
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
 @keyframes toastSwipeOutRight {
   to {
     transform: translateX(var(--reka-toast-swipe-end-x));

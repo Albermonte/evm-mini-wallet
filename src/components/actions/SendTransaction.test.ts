@@ -39,7 +39,7 @@ async function renderSendTransaction(options?: {
   const estimateGas = vi.fn().mockResolvedValue(21_000n);
   const estimateFeesPerGas = vi.fn().mockResolvedValue({ maxFeePerGas: 10n });
   const addToast = vi.fn();
-  const fetchBlockscoutTokens = vi.fn().mockResolvedValue(options?.fetchedTokens ?? []);
+  const fetchTokenBalances = vi.fn().mockResolvedValue(options?.fetchedTokens ?? []);
 
   const sendTransaction = vi.fn(
     (
@@ -70,6 +70,7 @@ async function renderSendTransaction(options?: {
     useChainId: () => chainId,
     useBalance: () => ({
       data: balance,
+      refetch: vi.fn(),
     }),
     useClient: () => ref({}),
     useSendTransaction: () => ({
@@ -98,8 +99,23 @@ async function renderSendTransaction(options?: {
     }),
   }));
 
+  vi.doMock("../../utils/token-balances", () => ({
+    fetchTokenBalances,
+    clearTokenCache: vi.fn(),
+  }));
+
   vi.doMock("../../utils/blockscout", () => ({
-    fetchBlockscoutTokens,
+    clearTransactionCache: vi.fn(),
+  }));
+
+  vi.doMock("@tanstack/vue-query", () => ({
+    useQueryClient: () => ({
+      invalidateQueries: vi.fn(),
+    }),
+  }));
+
+  vi.doMock("../../composables/useTransactionNotifier", () => ({
+    notifyTransactionConfirmed: vi.fn(),
   }));
 
   vi.doMock("reka-ui", () => ({
@@ -158,7 +174,7 @@ async function renderSendTransaction(options?: {
     estimateFeesPerGas,
     addToast,
     sendTransaction,
-    fetchBlockscoutTokens,
+    fetchTokenBalances,
   };
 }
 
@@ -326,7 +342,7 @@ describe("SendTransaction", () => {
   });
 
   it("refreshes token balances and shows a confirmation toast after a successful receipt", async () => {
-    const { wrapper, addToast, fetchBlockscoutTokens } = await renderSendTransaction({
+    const { wrapper, addToast, fetchTokenBalances } = await renderSendTransaction({
       fetchedTokens: [
         {
           token: {
@@ -358,6 +374,6 @@ describe("SendTransaction", () => {
     await nextTick();
 
     expect(addToast).toHaveBeenCalledWith("Transaction confirmed", "success");
-    expect(fetchBlockscoutTokens).toHaveBeenCalledTimes(2);
+    expect(fetchTokenBalances).toHaveBeenCalledTimes(2);
   });
 });

@@ -17,6 +17,7 @@ import { fetchBlockscoutTransactions, type Transaction } from "../../utils/block
 import { getExplorerTxUrl, chainMeta } from "../../utils/chains";
 import { formatBalance, truncateAddress } from "../../utils/format";
 import { formatUnits } from "viem";
+import { onTransactionConfirmed } from "../../composables/useTransactionNotifier";
 
 const { address } = useConnection();
 const chainId = useChainId();
@@ -41,6 +42,7 @@ async function fetchTransactions() {
 
 useTimeoutPoll(fetchTransactions, 30_000, { immediateCallback: true });
 watch([chainId, address], fetchTransactions);
+onTransactionConfirmed(fetchTransactions);
 
 function isSent(tx: Transaction): boolean {
   return tx.from.toLowerCase() === address.value?.toLowerCase();
@@ -183,7 +185,12 @@ function formatTime(timestamp: string): string {
 
 const nativeSymbol = computed(() => chainMeta[chainId.value]?.chain.nativeCurrency.symbol ?? "ETH");
 
-const recentTransactions = computed(() => transactions.value.slice(0, 10));
+const recentTransactions = computed(() =>
+  transactions.value.slice(0, 10).map((tx) => {
+    const label = actionLabel(tx);
+    return { tx, label, style: iconStyle(tx) };
+  }),
+);
 </script>
 
 <template>
@@ -213,7 +220,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
     <!-- Transaction list -->
     <div v-else-if="recentTransactions.length > 0" class="flex flex-col gap-1">
       <a
-        v-for="(tx, i) in recentTransactions"
+        v-for="({ tx, label, style }, i) in recentTransactions"
         :key="tx.hash"
         :href="getExplorerTxUrl(chainId, tx.hash)"
         target="_blank"
@@ -224,25 +231,18 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
         <!-- Action icon -->
         <div
           class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-          :class="[iconStyle(tx).bg, iconStyle(tx).color]"
+          :class="[style.bg, style.color]"
         >
-          <ArrowUpRight v-if="actionLabel(tx) === 'Send'" class="h-4 w-4" />
-          <ArrowDownLeft v-else-if="actionLabel(tx) === 'Receive'" class="h-4 w-4" />
-          <Check v-else-if="actionLabel(tx) === 'Approve'" class="h-4 w-4" />
-          <ArrowLeftRight v-else-if="actionLabel(tx) === 'Swap'" class="h-4 w-4" />
-          <ArrowDown
-            v-else-if="actionLabel(tx) === 'Deposit' || actionLabel(tx) === 'Stake'"
-            class="h-4 w-4"
-          />
+          <ArrowUpRight v-if="label === 'Send'" class="h-4 w-4" />
+          <ArrowDownLeft v-else-if="label === 'Receive'" class="h-4 w-4" />
+          <Check v-else-if="label === 'Approve'" class="h-4 w-4" />
+          <ArrowLeftRight v-else-if="label === 'Swap'" class="h-4 w-4" />
+          <ArrowDown v-else-if="label === 'Deposit' || label === 'Stake'" class="h-4 w-4" />
           <ArrowUp
-            v-else-if="
-              actionLabel(tx) === 'Withdraw' ||
-              actionLabel(tx) === 'Unstake' ||
-              actionLabel(tx) === 'Claim'
-            "
+            v-else-if="label === 'Withdraw' || label === 'Unstake' || label === 'Claim'"
             class="h-4 w-4"
           />
-          <Link v-else-if="actionLabel(tx) === 'Bridge'" class="h-4 w-4" />
+          <Link v-else-if="label === 'Bridge'" class="h-4 w-4" />
           <Settings v-else class="h-4 w-4" />
         </div>
 
@@ -250,7 +250,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5">
             <span class="text-sm font-medium text-surface-900 dark:text-surface-100">
-              {{ actionLabel(tx) }}
+              {{ label }}
             </span>
             <span
               v-if="tx.protocol"
@@ -284,7 +284,7 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
           <p
             v-else
             class="text-[11px] text-surface-400 dark:text-surface-500"
-            :title="`Fee: ${formatFee(tx.fee)} ETH`"
+            :title="`Fee: ${formatFee(tx.fee)} ${nativeSymbol}`"
           >
             Fee: {{ formatFee(tx.fee) }}
           </p>
@@ -321,20 +321,6 @@ const recentTransactions = computed(() => transactions.value.slice(0, 10));
   from {
     opacity: 0;
     transform: translateY(8px);
-  }
-}
-
-.empty-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
   }
 }
 </style>

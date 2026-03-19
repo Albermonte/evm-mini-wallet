@@ -94,7 +94,7 @@ describe("TransactionList", () => {
     });
 
     expect(wrapper.text()).toContain("Send");
-    expect(wrapper.text()).toContain("To: 0x2222...2222");
+    expect(wrapper.text()).toContain("To: 0x22222222...2222222222");
     expect(wrapper.text()).toContain("-1.5 ETH");
     expect(wrapper.text()).toContain("15m ago");
     expect(wrapper.text()).toContain("Approve");

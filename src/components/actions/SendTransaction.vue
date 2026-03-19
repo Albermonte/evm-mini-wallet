@@ -23,17 +23,24 @@ import { getExplorerTxUrl } from "../../utils/chains";
 import { useToast } from "../../composables/useToast";
 import { calculateMaxSendable, resolveTransactionChainId } from "../../utils/transactions";
 import { erc20Abi } from "../../utils/tokens";
-import { fetchBlockscoutTokens, type TokenWithBalance } from "../../utils/blockscout";
+import {
+  fetchTokenBalances,
+  clearTokenCache,
+  type TokenWithBalance,
+} from "../../utils/token-balances";
+import { clearTransactionCache } from "../../utils/blockscout";
 import { getNativeTokenLogoUrls } from "../../utils/token-logos";
 import { parseEip681 } from "../../utils/eip681";
+import { useQueryClient } from "@tanstack/vue-query";
+import { notifyTransactionConfirmed } from "../../composables/useTransactionNotifier";
 
 const { address } = useConnection();
 const chainId = useChainId();
-const { data: nativeBalance } = useBalance({ address });
+const { data: nativeBalance, refetch: refetchNativeBalance } = useBalance({ address });
 const client = useClient({ chainId });
 const { addToast } = useToast();
+const queryClient = useQueryClient();
 
-// Tokens fetched from Blockscout
 const fetchedTokens = ref<TokenWithBalance[]>([]);
 
 async function fetchAvailableTokens() {
@@ -42,7 +49,7 @@ async function fetchAvailableTokens() {
     return;
   }
   try {
-    fetchedTokens.value = await fetchBlockscoutTokens(chainId.value, address.value);
+    fetchedTokens.value = await fetchTokenBalances(chainId.value, address.value);
   } catch {
     fetchedTokens.value = [];
   }
@@ -273,10 +280,17 @@ watch(receipt, (val) => {
   if (val) {
     if (val.status === "success") {
       addToast("Transaction confirmed", "success");
-      // Refresh token list and balances after successful send
-      if (isTokenSend.value) {
-        fetchAvailableTokens();
-      }
+      // Bust in-memory caches so RPC fetches get fresh on-chain data
+      clearTokenCache();
+      clearTransactionCache();
+      // Refetch native balance via RPC (wagmi)
+      refetchNativeBalance();
+      // Refresh the local token picker via RPC
+      fetchAvailableTokens();
+      // Invalidate portfolio balances so BalanceDisplay + TokenList update
+      queryClient.invalidateQueries({ queryKey: ["portfolio-balances"] });
+      // Notify TransactionList to refetch
+      notifyTransactionConfirmed();
     } else {
       addToast("Transaction failed", "error");
     }

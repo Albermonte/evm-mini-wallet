@@ -33,7 +33,7 @@ const activeTab = ref("tokens");
 </script>
 
 <template>
-  <ToastProvider swipe-direction="down">
+  <ToastProvider swipe-direction="up">
     <TooltipProvider :delay-duration="300">
       <div
         class="flex min-h-svh flex-col"

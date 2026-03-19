@@ -2,8 +2,7 @@ import type { Address } from "viem";
 import type { Erc20TokenInfo } from "./tokens";
 
 /**
- * Well-known ERC-20 tokens per chain, used as an RPC fallback
- * when the Blockscout API is unavailable.
+ * Well-known ERC-20 tokens per chain, queried via RPC multicall.
  */
 export const wellKnownTokens: Record<number, Erc20TokenInfo[]> = {
   // Ethereum Mainnet

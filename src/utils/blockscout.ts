@@ -1,11 +1,7 @@
-import { type Address, createPublicClient, http } from "viem";
-import type { TokenInfo } from "./tokens";
-import { erc20Abi } from "./tokens";
-import { getNativeTokenLogoUrls, getTokenLogoUrls } from "./token-logos";
+import type { Address } from "viem";
 import { chainMeta } from "./chains";
-import { wellKnownTokens } from "./well-known-tokens";
 
-const CACHE_TTL = 30_000; // 30s — balances change, so keep it short
+const CACHE_TTL = 30_000;
 
 const blockscoutApiUrls: Record<number, string> = {
   1: "https://eth.blockscout.com",
@@ -14,184 +10,7 @@ const blockscoutApiUrls: Record<number, string> = {
   10: "https://optimism.blockscout.com",
   8453: "https://base.blockscout.com",
   11155111: "https://eth-sepolia.blockscout.com",
-  // BSC (56) has no Blockscout instance
 };
-
-function createCachedFetcher<T>() {
-  const cache = new Map<string, { data: T; timestamp: number }>();
-  const pending = new Map<string, Promise<T>>();
-
-  return function cachedFetch(key: string, fetcher: () => Promise<T>): Promise<T> {
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) return Promise.resolve(cached.data);
-
-    const inflight = pending.get(key);
-    if (inflight) return inflight;
-
-    const request = (async () => {
-      try {
-        const data = await fetcher();
-        cache.set(key, { data, timestamp: Date.now() });
-        return data;
-      } finally {
-        pending.delete(key);
-      }
-    })();
-
-    pending.set(key, request);
-    return request;
-  };
-}
-
-interface BlockscoutTokenItem {
-  token: {
-    address_hash: string;
-    name: string;
-    symbol: string;
-    decimals: string;
-    icon_url: string | null;
-    type: string;
-  };
-  value: string;
-}
-
-interface BlockscoutResponse {
-  items: BlockscoutTokenItem[];
-  next_page_params: Record<string, string> | null;
-}
-
-export interface TokenWithBalance {
-  token: TokenInfo;
-  balance: bigint;
-  logoUrls: string[];
-}
-
-const fetchCachedTokens = createCachedFetcher<TokenWithBalance[]>();
-const fetchCachedTransactions = createCachedFetcher<Transaction[]>();
-
-function getCacheKey(chainId: number, address: string): string {
-  return `${chainId}:${address.toLowerCase()}`;
-}
-
-async function fetchNativeTokenBalance(
-  chainId: number,
-  address: Address,
-): Promise<TokenWithBalance | null> {
-  const meta = chainMeta[chainId];
-  if (!meta) return null;
-
-  const client = createPublicClient({ chain: meta.chain, transport: http() });
-  const balance = await client.getBalance({ address });
-  if (balance <= 0n) return null;
-
-  return {
-    token: {
-      address: null,
-      symbol: meta.chain.nativeCurrency.symbol,
-      name: meta.chain.nativeCurrency.name,
-      decimals: meta.chain.nativeCurrency.decimals,
-      isNative: true,
-    },
-    balance,
-    logoUrls: getNativeTokenLogoUrls(chainId),
-  };
-}
-
-async function fetchTokensViaRpc(chainId: number, address: Address): Promise<TokenWithBalance[]> {
-  const tokens = wellKnownTokens[chainId];
-  const meta = chainMeta[chainId];
-  if (!meta) return [];
-
-  const client = createPublicClient({ chain: meta.chain, transport: http() });
-  const nativeTokenPromise = fetchNativeTokenBalance(chainId, address).catch(() => null);
-  if (!tokens?.length) {
-    const nativeToken = await nativeTokenPromise;
-    return nativeToken ? [nativeToken] : [];
-  }
-
-  const [nativeToken, results] = await Promise.all([
-    nativeTokenPromise,
-    client.multicall({
-      contracts: tokens.map((token) => ({
-        address: token.address,
-        abi: erc20Abi,
-        functionName: "balanceOf" as const,
-        args: [address],
-      })),
-    }),
-  ]);
-
-  const tokenBalances: TokenWithBalance[] = [];
-  if (nativeToken) {
-    tokenBalances.push(nativeToken);
-  }
-
-  for (let i = 0; i < tokens.length; i++) {
-    const res = results[i];
-    if (res?.status !== "success") continue;
-    const balance = res.result as bigint;
-    if (balance <= 0n) continue;
-
-    const token = tokens[i]!;
-    tokenBalances.push({
-      token,
-      balance,
-      logoUrls: getTokenLogoUrls(chainId, token.address),
-    });
-  }
-
-  return tokenBalances;
-}
-
-export function fetchBlockscoutTokens(
-  chainId: number,
-  address: Address,
-): Promise<TokenWithBalance[]> {
-  const key = getCacheKey(chainId, address);
-
-  return fetchCachedTokens(key, async () => {
-    try {
-      const baseUrl = blockscoutApiUrls[chainId];
-      if (!baseUrl) {
-        return await fetchTokensViaRpc(chainId, address);
-      }
-
-      const response = await fetch(`${baseUrl}/api/v2/addresses/${address}/tokens?type=ERC-20`);
-      if (!response.ok) throw new Error(`Blockscout returned ${response.status}`);
-
-      const data: BlockscoutResponse = await response.json();
-      const nativeToken = await fetchNativeTokenBalance(chainId, address).catch(() => null);
-      const result = data.items
-        .filter((item) => item.token.type === "ERC-20")
-        .map((item) => {
-          const tokenAddress = item.token.address_hash as Address;
-          const logoUrls = getTokenLogoUrls(chainId, tokenAddress);
-          if (item.token.icon_url) {
-            logoUrls.push(item.token.icon_url);
-          }
-          return {
-            token: {
-              address: tokenAddress,
-              symbol: item.token.symbol,
-              name: item.token.name,
-              decimals: Number(item.token.decimals),
-            },
-            balance: BigInt(item.value),
-            logoUrls,
-          };
-        });
-      return nativeToken ? [nativeToken, ...result] : result;
-    } catch {
-      try {
-        return await fetchTokensViaRpc(chainId, address);
-      } catch {
-        return [];
-      }
-    }
-  });
-}
-
-// --- Transaction history ---
 
 export interface Transaction {
   hash: string;
@@ -234,6 +53,13 @@ interface BlockscoutTxResponse {
   next_page_params: Record<string, string> | null;
 }
 
+const cache = new Map<string, { data: Transaction[]; timestamp: number }>();
+const pending = new Map<string, Promise<Transaction[]>>();
+
+export function clearTransactionCache() {
+  cache.clear();
+}
+
 function extractProtocol(info: BlockscoutAddressInfo | null): string | null {
   if (!info?.metadata?.tags) return null;
   const protocolTag = info.metadata.tags.find((t) => t.tagType === "protocol");
@@ -247,16 +73,22 @@ export function fetchBlockscoutTransactions(
   const baseUrl = blockscoutApiUrls[chainId];
   if (!baseUrl) return Promise.resolve([]);
 
-  const key = `tx:${getCacheKey(chainId, address)}`;
+  const key = `${chainId}:${address.toLowerCase()}`;
 
-  return fetchCachedTransactions(key, async () => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) return Promise.resolve(cached.data);
+
+  const inflight = pending.get(key);
+  if (inflight) return inflight;
+
+  const request = (async () => {
     try {
       const response = await fetch(`${baseUrl}/api/v2/addresses/${address}/transactions`);
       if (!response.ok) return [];
 
       const data: BlockscoutTxResponse = await response.json();
 
-      return data.items.map((item) => ({
+      const transactions = data.items.map((item) => ({
         hash: item.hash,
         from: item.from.hash,
         to: item.to?.hash ?? null,
@@ -270,10 +102,18 @@ export function fetchBlockscoutTransactions(
         transactionTypes: item.transaction_types,
         protocol: extractProtocol(item.to),
       }));
+
+      cache.set(key, { data: transactions, timestamp: Date.now() });
+      return transactions;
     } catch {
       return [];
+    } finally {
+      pending.delete(key);
     }
-  });
+  })();
+
+  pending.set(key, request);
+  return request;
 }
 
 export function getExplorerAddressUrl(chainId: number, address: string): string {

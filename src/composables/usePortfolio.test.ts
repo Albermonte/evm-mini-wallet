@@ -22,7 +22,7 @@ async function renderPortfolio(options?: {
   const address = ref(ADDRESS);
   const chainId = ref(options?.chainId ?? 8453);
 
-  const fetchBlockscoutTokens =
+  const fetchTokenBalances =
     options?.fetchTokens ??
     vi.fn().mockResolvedValue([
       {
@@ -71,8 +71,8 @@ async function renderPortfolio(options?: {
     useChainId: () => chainId,
   }));
 
-  vi.doMock("../utils/blockscout", () => ({
-    fetchBlockscoutTokens,
+  vi.doMock("../utils/token-balances", () => ({
+    fetchTokenBalances,
   }));
 
   vi.doMock("../utils/prices", () => ({
@@ -117,7 +117,7 @@ async function renderPortfolio(options?: {
   return {
     address,
     chainId,
-    fetchBlockscoutTokens,
+    fetchTokenBalances,
     fetchTokenPrices,
     portfolio,
     queryClient,
@@ -128,7 +128,7 @@ describe("usePortfolio", () => {
   it("shares trusted token state across separate usePortfolio consumers", async () => {
     const address = ref(ADDRESS);
     const chainId = ref(8453);
-    const fetchBlockscoutTokens = vi.fn().mockResolvedValue([
+    const fetchTokenBalances = vi.fn().mockResolvedValue([
       {
         token: {
           address: null,
@@ -166,8 +166,8 @@ describe("usePortfolio", () => {
       useChainId: () => chainId,
     }));
 
-    vi.doMock("../utils/blockscout", () => ({
-      fetchBlockscoutTokens,
+    vi.doMock("../utils/token-balances", () => ({
+      fetchTokenBalances,
     }));
 
     vi.doMock("../utils/prices", () => ({
@@ -328,7 +328,7 @@ describe("usePortfolio", () => {
   });
 
   it("resets trusted ERC-20 logos when the chain changes", async () => {
-    const fetchBlockscoutTokens = vi
+    const fetchTokenBalances = vi
       .fn()
       .mockResolvedValueOnce([
         {
@@ -381,7 +381,7 @@ describe("usePortfolio", () => {
       });
 
     const { chainId, portfolio } = await renderPortfolio({
-      fetchTokens: fetchBlockscoutTokens,
+      fetchTokens: fetchTokenBalances,
       fetchPrices: fetchTokenPrices,
     });
 
