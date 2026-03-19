@@ -3,7 +3,12 @@ import { ToastRoot, ToastTitle, ToastClose, ToastViewport } from "reka-ui";
 import { X } from "lucide-vue-next";
 import { useToast } from "../../composables/useToast";
 
+const EXIT_DURATION = 200;
 const { toasts, removeToast } = useToast();
+
+function onClose(id: number) {
+  setTimeout(() => removeToast(id), EXIT_DURATION);
+}
 
 const typeStyles = {
   success: "bg-green-600 text-white",
@@ -16,7 +21,6 @@ const typeStyles = {
   <ToastRoot
     v-for="toast in toasts"
     :key="toast.id"
-    force-mount
     :duration="toast.duration"
     :type="toast.type === 'error' ? 'foreground' : 'background'"
     :class="[
@@ -25,7 +29,7 @@ const typeStyles = {
     ]"
     @update:open="
       (open: boolean) => {
-        if (!open) removeToast(toast.id);
+        if (!open) onClose(toast.id);
       }
     "
   >
@@ -43,7 +47,7 @@ const typeStyles = {
   />
 </template>
 
-<style scoped>
+<style>
 .toast-item[data-state="open"] {
   animation: toastEnter 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
