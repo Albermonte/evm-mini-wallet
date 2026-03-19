@@ -4,6 +4,12 @@ import { mount } from "@vue/test-utils";
 import { ref } from "vue";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
+// Make requestAnimationFrame execute callbacks synchronously so animated values resolve immediately
+vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+  cb(performance.now() + 1000);
+  return 0;
+});
+
 afterEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
