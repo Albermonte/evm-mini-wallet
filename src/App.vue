@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useConnection } from "@wagmi/vue";
+import { useQueryClient } from "@tanstack/vue-query";
 import {
   ToastProvider,
   TooltipProvider,
@@ -26,10 +27,30 @@ import SendTransaction from "./components/actions/SendTransaction.vue";
 import TransactionList from "./components/actions/TransactionList.vue";
 import Toast from "./components/ui/Toast.vue";
 import SettingsButton from "./components/ui/SettingsButton.vue";
+import { usePullToRefresh } from "./composables/usePullToRefresh";
+import { clearTokenCache } from "./utils/token-balances";
+import { clearTransactionCache } from "./utils/blockscout";
+import { notifyTransactionConfirmed } from "./composables/useTransactionNotifier";
 
 const { isConnected } = useConnection();
 const showSend = ref(false);
 const activeTab = ref("tokens");
+
+const scrollContainer = ref<HTMLElement | null>(null);
+const queryClient = useQueryClient();
+
+const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
+  scrollTarget: scrollContainer,
+  async onRefresh() {
+    clearTokenCache();
+    clearTransactionCache();
+    queryClient.invalidateQueries({ queryKey: ["portfolio-balances"] });
+    queryClient.invalidateQueries({ queryKey: ["portfolio-prices"] });
+    notifyTransactionConfirmed();
+    // Wait for queries to settle
+    await queryClient.refetchQueries({ queryKey: ["portfolio-balances"] });
+  },
+});
 </script>
 
 <template>
@@ -46,11 +67,43 @@ const activeTab = ref("tokens");
       >
         <AppHeader />
 
-        <main class="flex flex-1 flex-col">
+        <main ref="scrollContainer" class="flex flex-1 flex-col overflow-y-auto">
           <Transition name="fade" mode="out-in">
             <ConnectWallet v-if="!isConnected" />
 
             <div v-else class="mx-auto flex w-full max-w-lg flex-col px-4 sm:px-5">
+              <!-- Pull-to-refresh indicator -->
+              <div
+                class="flex items-center justify-center overflow-hidden"
+                :class="{ 'transition-[height] duration-300 ease-out': !isPulling }"
+                :style="{ height: `${pullDistance}px` }"
+              >
+                <div
+                  v-if="pullDistance > 0 || isRefreshing"
+                  class="flex items-center justify-center"
+                >
+                  <svg
+                    class="h-5 w-5 text-black dark:text-white"
+                    :class="{ 'animate-spin': isRefreshing }"
+                    :style="
+                      !isRefreshing
+                        ? {
+                            transform: `rotate(${Math.min(pullDistance / 80, 1) * 360}deg)`,
+                            opacity: Math.min(pullDistance / 40, 1),
+                          }
+                        : undefined
+                    "
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                </div>
+              </div>
+
               <!-- Hero Balance (dominant, breathing room) -->
               <Motion
                 class="flex flex-col items-center pt-10 pb-8 sm:pt-14 sm:pb-10"
