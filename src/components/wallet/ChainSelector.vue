@@ -31,15 +31,15 @@ function handleSwitch(id: number) {
   <PopoverRoot v-model:open="open">
     <PopoverTrigger as-child>
       <button
-        class="flex min-h-[36px] items-center gap-1.5 rounded-md border border-surface-300 px-2 py-1.5 text-xs font-medium text-surface-700 transition-colors hover:bg-surface-100 dark:border-surface-600 dark:text-surface-300 dark:hover:bg-surface-800"
+        class="flex items-center gap-1 rounded-full p-1.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+        :aria-label="`Switch chain, current: ${chainMeta[chainId ?? 1]?.chain.name ?? 'Unknown'}`"
       >
         <img
           :src="getChainLogo(chainId ?? 1)"
           :alt="chainMeta[chainId ?? 1]?.chain.name"
-          class="h-4 w-4 shrink-0 rounded-full"
+          class="h-5 w-5 shrink-0 rounded-full"
         />
-        <span>{{ chainMeta[chainId ?? 1]?.chain.name ?? "Unknown" }}</span>
-        <ChevronDown class="h-3.5 w-3.5 shrink-0 text-surface-400" />
+        <ChevronDown class="h-3 w-3 text-surface-400" />
       </button>
     </PopoverTrigger>
 

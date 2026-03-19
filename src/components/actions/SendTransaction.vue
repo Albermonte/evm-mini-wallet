@@ -464,7 +464,7 @@ function handleScanned(value: string) {
       />
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 pt-1">
       <BaseButton
         variant="primary"
         :loading="isSending || isConfirming"

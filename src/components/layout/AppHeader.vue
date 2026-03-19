@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useConnection } from "@wagmi/vue";
-import ThemeToggle from "../ui/ThemeToggle.vue";
-import ChainSelector from "../wallet/ChainSelector.vue";
 import AccountInfo from "../wallet/AccountInfo.vue";
+import ChainSelector from "../wallet/ChainSelector.vue";
 import { useTheme } from "../../composables/useTheme";
 
 const { isConnected } = useConnection();
@@ -10,26 +9,24 @@ const { logoSrc } = useTheme();
 </script>
 
 <template>
-  <header
-    class="flex items-center justify-between border-b border-surface-300 px-3 py-2.5 sm:px-4 sm:py-3 dark:border-surface-700"
-  >
-    <!-- Left: Brand mark -->
-    <div class="flex items-center gap-1.5">
-      <img :src="logoSrc" alt="EVM Mini Wallet" class="h-6 w-6" />
+  <header class="flex items-center px-4 pt-4 pb-2 sm:px-5 sm:pt-5">
+    <!-- Left: Logo -->
+    <div class="flex flex-1 items-center gap-2">
+      <img :src="logoSrc" alt="EVM Mini Wallet" class="h-7 w-7" />
+      <span
+        v-if="!isConnected"
+        class="font-display text-[15px] font-bold tracking-tight text-black dark:text-white"
+      >
+        Mini Wallet
+      </span>
     </div>
 
-    <!-- Center: Account info (when connected) -->
-    <div v-if="isConnected" class="flex items-center">
-      <AccountInfo />
-    </div>
+    <!-- Center: Account address (when connected) -->
+    <AccountInfo v-if="isConnected" />
 
-    <!-- Right: Chain selector + Theme toggle -->
-    <div class="flex items-center gap-1">
-      <ThemeToggle v-if="!isConnected" />
-      <template v-else>
-        <ChainSelector />
-        <ThemeToggle class="hidden sm:flex" />
-      </template>
+    <!-- Right: Chain selector (when connected) -->
+    <div class="flex flex-1 justify-end">
+      <ChainSelector v-if="isConnected" />
     </div>
   </header>
 </template>

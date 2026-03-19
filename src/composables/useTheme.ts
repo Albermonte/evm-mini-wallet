@@ -5,11 +5,7 @@ const logoSrc = computed(() => (isDark.value ? "/favicon-dark.svg" : "/favicon.s
 let hasInitialized = false;
 
 function canUseBrowser() {
-  return (
-    typeof window !== "undefined" &&
-    typeof document !== "undefined" &&
-    typeof localStorage !== "undefined"
-  );
+  return typeof window !== "undefined" && typeof document !== "undefined";
 }
 
 function applyTheme(value: boolean) {
@@ -22,17 +18,16 @@ function applyTheme(value: boolean) {
 function initTheme() {
   if (!canUseBrowser() || hasInitialized) return;
 
-  const stored = window.localStorage.getItem("theme");
-  if (stored) {
-    isDark.value = stored === "dark";
-  } else {
-    isDark.value = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  isDark.value = mq.matches;
   applyTheme(isDark.value);
+
+  mq.addEventListener("change", (e) => {
+    isDark.value = e.matches;
+  });
 
   watch(isDark, (value) => {
     applyTheme(value);
-    window.localStorage.setItem("theme", value ? "dark" : "light");
   });
 
   hasInitialized = true;
@@ -40,10 +35,5 @@ function initTheme() {
 
 export function useTheme() {
   initTheme();
-
-  function toggle() {
-    isDark.value = !isDark.value;
-  }
-
-  return { isDark, logoSrc, toggle };
+  return { isDark, logoSrc };
 }

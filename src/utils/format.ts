@@ -9,7 +9,7 @@ export function formatBalance(value: bigint, decimals = 18, maxDecimals = 4): st
 
 export function truncateAddress(address: string): string {
   if (address.length < 10) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return `${address.slice(0, 10)}...${address.slice(-10)}`;
 }
 
 export function formatCurrency(value: number, currency = "USD"): string {

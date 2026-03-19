@@ -19,13 +19,19 @@ describe("AppHeader", () => {
       }),
     }));
 
+    vi.doMock("../../composables/useTheme", () => ({
+      useTheme: () => ({
+        isDark: ref(false),
+        logoSrc: ref("/favicon.svg"),
+      }),
+    }));
+
     const { default: AppHeader } = await import("./AppHeader.vue");
     const wrapper = mount(AppHeader, {
       global: {
         stubs: {
-          ThemeToggle: { template: '<div data-testid="theme-toggle" />' },
-          ChainSelector: { template: '<div data-testid="chain-selector" />' },
           AccountInfo: { template: '<div data-testid="account-info" />' },
+          ChainSelector: { template: '<div data-testid="chain-selector" />' },
         },
       },
     });
@@ -33,19 +39,21 @@ describe("AppHeader", () => {
     return wrapper;
   }
 
-  it("always renders the theme toggle", async () => {
-    const wrapper = await renderHeader(false);
-
-    expect(wrapper.find('[data-testid="theme-toggle"]').exists()).toBe(true);
-  });
-
-  it("renders account and chain details only when connected", async () => {
+  it("shows wordmark when disconnected, chain selector when connected", async () => {
     const disconnected = await renderHeader(false);
-    expect(disconnected.find('[data-testid="account-info"]').exists()).toBe(false);
+    expect(disconnected.text()).toContain("Mini Wallet");
     expect(disconnected.find('[data-testid="chain-selector"]').exists()).toBe(false);
 
     const connected = await renderHeader(true);
-    expect(connected.find('[data-testid="account-info"]').exists()).toBe(true);
+    expect(connected.text()).not.toContain("Mini Wallet");
     expect(connected.find('[data-testid="chain-selector"]').exists()).toBe(true);
+  });
+
+  it("renders account info only when connected", async () => {
+    const disconnected = await renderHeader(false);
+    expect(disconnected.find('[data-testid="account-info"]').exists()).toBe(false);
+
+    const connected = await renderHeader(true);
+    expect(connected.find('[data-testid="account-info"]').exists()).toBe(true);
   });
 });

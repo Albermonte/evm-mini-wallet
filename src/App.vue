@@ -49,44 +49,44 @@ const activeTab = ref("tokens");
           <Transition name="fade" mode="out-in">
             <ConnectWallet v-if="!isConnected" />
 
-            <div v-else class="mx-auto flex w-full max-w-lg flex-col px-3 sm:px-4">
-              <!-- Hero Balance -->
+            <div v-else class="mx-auto flex w-full max-w-lg flex-col px-4 sm:px-5">
+              <!-- Hero Balance (dominant, breathing room) -->
               <Motion
-                class="flex flex-col items-center pt-14 pb-8"
+                class="flex flex-col items-center pt-10 pb-8 sm:pt-14 sm:pb-10"
                 :initial="{ opacity: 0, y: 20 }"
                 :animate="{ opacity: 1, y: 0 }"
-                :transition="{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }"
+                :transition="{ delay: 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }"
               >
                 <BalanceDisplay />
               </Motion>
 
-              <!-- Send Action -->
+              <!-- Send Action (primary, commanding) -->
               <Motion
-                class="flex justify-center pb-14"
+                class="mx-4 pb-12 sm:mx-6 sm:pb-14"
                 :initial="{ opacity: 0, y: 16 }"
                 :animate="{ opacity: 1, y: 0 }"
                 :transition="{ delay: 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
               >
                 <button
-                  class="send-btn group flex cursor-pointer items-center justify-center gap-2 rounded-full bg-black px-8 py-3 text-sm font-bold tracking-wide text-white transition-all duration-150 active:scale-[0.97] dark:bg-white dark:text-black"
+                  class="group flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-black py-4 text-base font-bold tracking-tight text-white transition-all duration-150 active:scale-[0.98] dark:bg-white dark:text-black"
                   @click="showSend = true"
                 >
                   <ArrowUpRight
-                    class="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    class="h-5 w-5 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   />
                   Send
                 </button>
               </Motion>
 
-              <!-- Tabs: Tokens / Activity -->
+              <!-- Tabs: Tokens / Activity (clear break from hero) -->
               <Motion
                 :initial="{ opacity: 0, y: 20 }"
                 :animate="{ opacity: 1, y: 0 }"
                 :transition="{ delay: 0.25, duration: 0.5, ease: [0.16, 1, 0.3, 1] }"
               >
-                <TabsRoot v-model="activeTab" class="pb-6">
+                <TabsRoot v-model="activeTab" class="pb-10">
                   <TabsList
-                    class="relative mb-4 flex border-b border-surface-200 dark:border-surface-800"
+                    class="relative mb-5 flex border-b border-surface-200 dark:border-surface-800"
                   >
                     <TabsTrigger
                       value="tokens"
@@ -101,7 +101,7 @@ const activeTab = ref("tokens");
                       Activity
                     </TabsTrigger>
                     <div
-                      class="absolute bottom-0 left-0 h-0.5 w-1/2 bg-black transition-transform duration-300 dark:bg-white"
+                      class="absolute bottom-0 left-0 h-[3px] w-1/2 bg-black transition-transform duration-300 dark:bg-white"
                       :style="{
                         transform: activeTab === 'tokens' ? 'translateX(0)' : 'translateX(100%)',
                         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',

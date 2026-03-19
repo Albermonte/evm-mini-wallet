@@ -8,6 +8,39 @@ This is a mobile-first wallet app. All development effort should be directed tow
 
 Black and white, punchy feeling. Do not introduce brand colors or accent colors. Keep the palette strictly monochrome (black, white, grays). Achieve visual impact through extreme contrast, bold typography weights, sharp borders, and dramatic scale hierarchy — not through color.
 
+## Design Context
+
+### Users
+
+Everyday crypto users who know blockchain basics. They want a fast, no-fuss tool for common tasks — not a learning environment and not a power-user dashboard. They're using this on mobile, often on the go, and expect things to just work.
+
+### Core Job
+
+Quick send/receive. Get in, send tokens, get out. Speed and clarity are paramount — every extra tap or moment of confusion is a failure.
+
+### Brand Personality
+
+**Sleek, premium, quiet.** Luxury minimalism with understated confidence. Think high-end product design — the kind where restraint IS the statement. Not loud, not flashy, but unmistakably refined.
+
+### Aesthetic Direction
+
+- **Palette**: Strictly monochrome — black, white, grays. No brand colors, no accents.
+- **Typography**: Space Grotesk — geometric, modern, confident. Bold weights for hierarchy, tight tracking for density.
+- **Theme**: Light + dark mode. Both should feel equally premium.
+- **Anti-references**: Colorful crypto dashboards, gamified DeFi interfaces, glassmorphic "web3" aesthetics.
+
+### Design Principles
+
+1. **Clarity over cleverness** — Every element earns its place. If it doesn't help the user send or receive, question it.
+2. **Confidence through restraint** — Premium feel comes from what you leave out, not what you add. Whitespace is a feature.
+3. **Speed is respect** — Respect the user's time. Minimal steps, immediate feedback, no unnecessary screens.
+4. **Contrast is the only color** — Hierarchy must come from bold type scale differences, weight contrasts, and spatial rhythm.
+5. **Touch-first, always** — Every target is generous, every gesture is natural, every interaction feels physical.
+
+### Accessibility
+
+WCAG AA compliance. Good contrast ratios, full keyboard navigation, screen reader support, reduced motion respect.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web
