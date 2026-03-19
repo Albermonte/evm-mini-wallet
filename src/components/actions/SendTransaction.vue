@@ -416,20 +416,21 @@ function handleScanned(value: string) {
       <label class="text-sm font-medium text-surface-700 dark:text-surface-300">
         Recipient Address
       </label>
-      <div class="flex items-start gap-2">
-        <BaseInput
-          v-model="recipient"
-          placeholder="0x..."
-          :error="recipientError"
-          :disabled="isSending || isConfirming"
-          autocomplete="off"
-          autocapitalize="none"
-          spellcheck="false"
-          class="flex-1"
-        />
+      <div class="flex gap-2">
+        <div class="min-w-0 flex-1">
+          <BaseInput
+            v-model="recipient"
+            placeholder="0x..."
+            :error="recipientError"
+            :disabled="isSending || isConfirming"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+        </div>
         <button
           type="button"
-          class="mt-px flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-surface-300 bg-white text-surface-500 transition-colors hover:bg-surface-50 hover:text-surface-900 dark:border-surface-600 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-surface-300 bg-white text-surface-500 transition-colors hover:bg-surface-50 hover:text-surface-900 dark:border-surface-600 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="isSending || isConfirming"
           aria-label="Scan QR code"
           @click="showScanner = true"
