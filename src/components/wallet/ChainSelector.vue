@@ -72,15 +72,3 @@ function handleSwitch(id: number) {
     </PopoverPortal>
   </PopoverRoot>
 </template>
-
-<style scoped>
-.popover-content[data-state="open"] {
-  animation: popoverShow 150ms ease;
-}
-@keyframes popoverShow {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
-</style>

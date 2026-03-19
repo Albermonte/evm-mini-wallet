@@ -513,15 +513,3 @@ function handleScanned(value: string) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.popover-content[data-state="open"] {
-  animation: popoverShow 150ms ease;
-}
-@keyframes popoverShow {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
-</style>

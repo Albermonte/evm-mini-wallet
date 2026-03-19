@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-vue-next";
 import { fetchBlockscoutTransactions, type Transaction } from "../../utils/blockscout";
+import EmptyState from "../ui/EmptyState.vue";
 import { getExplorerTxUrl, chainMeta } from "../../utils/chains";
 import { formatBalance, truncateAddress } from "../../utils/format";
 import { formatUnits } from "viem";
@@ -296,25 +297,21 @@ const recentTransactions = computed(() =>
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!isLoading" class="flex flex-col items-center gap-3 py-12 text-center">
-      <div
-        class="empty-float flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800"
-      >
+    <EmptyState
+      v-else-if="!isLoading"
+      title="No activity yet"
+      description="Your transactions will appear here once you send or receive tokens"
+    >
+      <template #icon>
         <Clock class="h-6 w-6 text-surface-400 dark:text-surface-500" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <p class="text-base font-medium text-surface-700 dark:text-surface-300">No activity yet</p>
-        <p class="text-sm text-surface-400 dark:text-surface-500">
-          Your transactions will appear here once you send or receive tokens
-        </p>
-      </div>
-    </div>
+      </template>
+    </EmptyState>
   </div>
 </template>
 
 <style scoped>
 .tx-row {
-  animation: fadeSlideUp 400ms calc(var(--stagger) * 50ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeSlideUp 400ms calc(var(--stagger) * 50ms) var(--ease-out-expo) both;
 }
 
 @keyframes fadeSlideUp {

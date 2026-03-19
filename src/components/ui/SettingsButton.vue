@@ -57,25 +57,3 @@ const options: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
     </PopoverRoot>
   </div>
 </template>
-
-<style scoped>
-.popover-content[data-state="open"] {
-  animation: popoverShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.popover-content[data-state="closed"] {
-  animation: popoverHide 100ms ease forwards;
-}
-
-@keyframes popoverShow {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.96);
-  }
-}
-@keyframes popoverHide {
-  to {
-    opacity: 0;
-    transform: translateY(4px) scale(0.96);
-  }
-}
-</style>

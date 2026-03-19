@@ -112,7 +112,7 @@ function handleConnect(detail: EIP6963ProviderDetail) {
 
 <style scoped>
 .connect-entrance {
-  animation: entrance 500ms var(--entrance-delay, 0ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: entrance 500ms var(--entrance-delay, 0ms) var(--ease-out-expo) both;
 }
 
 @keyframes entrance {

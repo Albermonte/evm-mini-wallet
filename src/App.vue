@@ -158,7 +158,7 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
                       class="absolute bottom-0 left-0 h-[3px] w-1/2 bg-black transition-transform duration-300 dark:bg-white"
                       :style="{
                         transform: activeTab === 'tokens' ? 'translateX(0)' : 'translateX(100%)',
-                        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        transitionTimingFunction: 'var(--ease-out-expo)',
                       }"
                     />
                   </TabsList>
@@ -220,26 +220,16 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
 }
 
 .send-overlay {
-  animation: overlayShow 250ms ease-out;
+  animation: overlayIn 250ms ease-out;
 }
 .send-overlay[data-state="closed"] {
-  animation: overlayHide 150ms ease forwards;
+  animation: overlayOut 150ms ease forwards;
 }
 .send-sheet {
   animation: sheetSlideUp 400ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 .send-sheet[data-state="closed"] {
-  animation: sheetSlideDown 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes overlayShow {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes overlayHide {
-  to {
-    opacity: 0;
-  }
+  animation: sheetSlideDown 200ms var(--ease-out-expo) forwards;
 }
 @keyframes sheetSlideUp {
   from {

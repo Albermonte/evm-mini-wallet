@@ -36,8 +36,8 @@ const formattedBalance = computed(() => formatCurrency(animatedTotal.value));
 <style scoped>
 .balance-enter-active {
   transition:
-    opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.3s var(--ease-out-expo),
+    transform 0.3s var(--ease-out-expo);
 }
 .balance-leave-active {
   transition: opacity 0.15s ease;

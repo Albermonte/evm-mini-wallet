@@ -49,7 +49,7 @@ const typeStyles = {
 
 <style>
 .toast-item[data-state="open"] {
-  animation: toastEnter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: toastEnter 300ms var(--ease-out-expo);
 }
 
 .toast-item[data-state="closed"] {
