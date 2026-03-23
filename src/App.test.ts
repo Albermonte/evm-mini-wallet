@@ -139,6 +139,17 @@ describe("App", () => {
     expect(wrapper.find('[data-testid="balance-display"]').exists()).toBe(false);
   });
 
+  it("locks the app shell to the viewport and keeps scrolling inside main", async () => {
+    const wrapper = await renderApp(false);
+    const shell = wrapper.get('[data-testid="app-shell"]');
+    const main = wrapper.get('[data-testid="app-main"]');
+
+    expect(shell.classes()).toEqual(
+      expect.arrayContaining(["h-dvh", "overflow-hidden", "box-border"]),
+    );
+    expect(main.classes()).toEqual(expect.arrayContaining(["min-h-0", "overflow-y-auto"]));
+  });
+
   it("renders the connected tabs and send sheet content", async () => {
     const wrapper = await renderApp(true);
 

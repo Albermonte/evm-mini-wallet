@@ -15,7 +15,14 @@ const options: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
 </script>
 
 <template>
-  <div class="fixed bottom-5 right-5" style="padding-bottom: env(safe-area-inset-bottom)">
+  <div
+    data-testid="settings-dock"
+    class="fixed"
+    style="
+      right: calc(1.25rem + env(safe-area-inset-right));
+      bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    "
+  >
     <PopoverRoot v-model:open="open">
       <PopoverTrigger as-child>
         <button

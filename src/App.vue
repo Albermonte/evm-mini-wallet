@@ -57,7 +57,8 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
   <ToastProvider swipe-direction="up">
     <TooltipProvider :delay-duration="300">
       <div
-        class="flex min-h-svh flex-col"
+        data-testid="app-shell"
+        class="flex h-dvh min-h-svh box-border flex-col overflow-hidden"
         style="
           padding-top: env(safe-area-inset-top);
           padding-right: env(safe-area-inset-right);
@@ -67,7 +68,11 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
       >
         <AppHeader />
 
-        <main ref="scrollContainer" class="flex flex-1 flex-col overflow-y-auto">
+        <main
+          ref="scrollContainer"
+          data-testid="app-main"
+          class="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        >
           <Transition name="fade" mode="out-in">
             <ConnectWallet v-if="!isConnected" />
 
