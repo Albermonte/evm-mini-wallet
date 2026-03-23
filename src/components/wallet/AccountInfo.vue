@@ -9,6 +9,9 @@ import { useToast } from "../../composables/useToast";
 const { address } = useConnection();
 const { copied, copy } = useClipboard();
 const { addToast } = useToast();
+const emit = defineEmits<{
+  openReceive: [];
+}>();
 
 function copyAddress() {
   if (address.value) {
@@ -20,19 +23,27 @@ function copyAddress() {
 
 <template>
   <div v-if="address" class="flex items-center gap-1">
+    <button
+      type="button"
+      aria-label="Open receive sheet"
+      class="flex min-h-[36px] items-center rounded-md border border-surface-300 px-2.5 py-1.5 text-xs font-semibold text-surface-900 transition-colors hover:bg-surface-100 active:bg-surface-200 dark:border-surface-600 dark:text-surface-100 dark:hover:bg-surface-800"
+      @click="emit('openReceive')"
+    >
+      {{ truncateAddress(address) }}
+    </button>
     <TooltipRoot>
       <TooltipTrigger as-child>
         <button
+          type="button"
           aria-label="Copy wallet address"
           class="flex min-h-[36px] items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors"
           :class="
             copied
-              ? 'border-green-400 bg-green-50 text-green-700 dark:border-green-600 dark:bg-green-900/20 dark:text-green-400'
+              ? 'border-surface-900 bg-surface-900 text-white dark:border-surface-100 dark:bg-surface-100 dark:text-surface-900'
               : 'border-surface-300 text-surface-700 hover:bg-surface-100 active:bg-surface-200 dark:border-surface-600 dark:text-surface-300 dark:hover:bg-surface-800'
           "
           @click="copyAddress"
         >
-          {{ truncateAddress(address) }}
           <Check v-if="copied" class="h-3.5 w-3.5 shrink-0" />
           <Copy v-else class="h-3.5 w-3.5 shrink-0 text-surface-400" />
         </button>

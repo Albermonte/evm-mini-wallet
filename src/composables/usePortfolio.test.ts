@@ -125,7 +125,7 @@ async function renderPortfolio(options?: {
 }
 
 describe("usePortfolio", () => {
-  it("shares trusted token state across separate usePortfolio consumers", async () => {
+  it("shares query-backed portfolio data across separate consumers", async () => {
     const address = ref(ADDRESS);
     const chainId = ref(8453);
     const fetchTokenBalances = vi.fn().mockResolvedValue([
@@ -151,15 +151,10 @@ describe("usePortfolio", () => {
         logoUrls: ["https://example.com/usdc.png"],
       },
     ]);
-    const fetchTokenPrices = vi
-      .fn()
-      .mockResolvedValueOnce({
-        "native:ETH": 2000,
-      })
-      .mockResolvedValueOnce({
-        "native:ETH": 2000,
-        [USDC_ADDRESS]: 1,
-      });
+    const fetchTokenPrices = vi.fn().mockResolvedValue({
+      "native:ETH": 2000,
+      [USDC_ADDRESS]: 1,
+    });
 
     vi.doMock("@wagmi/vue", () => ({
       useConnection: () => ({ address }),
@@ -210,49 +205,22 @@ describe("usePortfolio", () => {
       throw new Error("Portfolio composables did not initialize");
     }
 
-    expect(portfolioA.portfolioTotalFiat.value).toBe(2000);
-    expect(portfolioB.portfolioTotalFiat.value).toBe(2000);
-
-    portfolioA.markTokenTrusted(USDC_ADDRESS);
-    await flushPromises();
-
-    expect(portfolioB.trustedTokenKeys.value.has(USDC_ADDRESS)).toBe(true);
+    expect(portfolioA.portfolioTotalFiat.value).toBe(2002);
     expect(portfolioB.portfolioTotalFiat.value).toBe(2002);
+    expect(portfolioA.status.value).toBe("success");
+    expect(portfolioB.status.value).toBe("success");
   });
 
-  it("only fetches prices for tokens that are currently eligible for the sum", async () => {
-    const fetchTokenPrices = vi
-      .fn()
-      .mockResolvedValueOnce({
-        "native:ETH": 2000,
-      })
-      .mockResolvedValueOnce({
-        "native:ETH": 2000,
-        [USDC_ADDRESS]: 1,
-      });
+  it("fetches prices for all returned tokens instead of gating on logo trust", async () => {
+    const fetchTokenPrices = vi.fn().mockResolvedValue({
+      "native:ETH": 2000,
+      [USDC_ADDRESS]: 1,
+      [FAKE_ADDRESS]: 5,
+    });
 
     const { portfolio } = await renderPortfolio({ fetchPrices: fetchTokenPrices });
 
-    expect(fetchTokenPrices).toHaveBeenNthCalledWith(
-      1,
-      8453,
-      [
-        {
-          address: null,
-          symbol: "ETH",
-          name: "Ether",
-          decimals: 18,
-          isNative: true,
-        },
-      ],
-      "usd",
-    );
-
-    portfolio.markTokenTrusted(USDC_ADDRESS);
-    await flushPromises();
-
-    expect(fetchTokenPrices).toHaveBeenNthCalledWith(
-      2,
+    expect(fetchTokenPrices).toHaveBeenCalledWith(
       8453,
       [
         {
@@ -268,24 +236,23 @@ describe("usePortfolio", () => {
           name: "USD Coin",
           decimals: 6,
         },
+        {
+          address: FAKE_ADDRESS,
+          symbol: "FAKE",
+          name: "Fake Token",
+          decimals: 18,
+        },
       ],
       "usd",
     );
+    expect(portfolio.portfolioTotalFiat.value).toBe(3022);
   });
 
-  it("includes the native asset immediately and adds ERC-20s after a trusted logo load", async () => {
+  it("includes priced ERC-20 value without waiting for logo trust", async () => {
     const { portfolio } = await renderPortfolio();
 
     expect(portfolio.tokens.value).toHaveLength(3);
-    expect(portfolio.trustedTokenKeys.value.has("native:ETH")).toBe(true);
-    expect(portfolio.trustedTokenKeys.value.has(USDC_ADDRESS)).toBe(false);
-    expect(portfolio.portfolioTotalFiat.value).toBe(3000);
-
-    portfolio.markTokenTrusted(USDC_ADDRESS);
-    await flushPromises();
-
-    expect(portfolio.trustedTokenKeys.value.has(USDC_ADDRESS)).toBe(true);
-    expect(portfolio.portfolioTotalFiat.value).toBe(3002);
+    expect(portfolio.portfolioTotalFiat.value).toBe(3022);
   });
 
   it("ignores trusted tokens that still have no price", async () => {
@@ -321,13 +288,20 @@ describe("usePortfolio", () => {
       fetchPrices: fetchTokenPrices,
     });
 
-    portfolio.markTokenTrusted(USDC_ADDRESS);
-    await flushPromises();
-
     expect(portfolio.portfolioTotalFiat.value).toBe(2000);
   });
 
-  it("resets trusted ERC-20 logos when the chain changes", async () => {
+  it("surfaces token fetch failures as an error state", async () => {
+    const { portfolio } = await renderPortfolio({
+      fetchTokens: vi.fn().mockRejectedValue(new Error("boom")),
+    });
+
+    expect(portfolio.status.value).toBe("error");
+    expect(portfolio.tokens.value).toEqual([]);
+    expect(portfolio.error.value?.message).toBe("boom");
+  });
+
+  it("recomputes portfolio state when the chain changes", async () => {
     const fetchTokenBalances = vi
       .fn()
       .mockResolvedValueOnce([
@@ -371,9 +345,6 @@ describe("usePortfolio", () => {
       .fn()
       .mockResolvedValueOnce({
         "native:ETH": 2000,
-      })
-      .mockResolvedValueOnce({
-        "native:ETH": 2000,
         [USDC_ADDRESS]: 1,
       })
       .mockResolvedValueOnce({
@@ -385,14 +356,11 @@ describe("usePortfolio", () => {
       fetchPrices: fetchTokenPrices,
     });
 
-    portfolio.markTokenTrusted(USDC_ADDRESS);
-    await flushPromises();
     expect(portfolio.portfolioTotalFiat.value).toBe(2002);
 
     chainId.value = 10;
     await flushPromises();
 
-    expect(portfolio.trustedTokenKeys.value.has(USDC_ADDRESS)).toBe(false);
     expect(portfolio.portfolioTotalFiat.value).toBe(1050);
     expect(portfolio.scopeKey.value).toBe(`10:${ADDRESS.toLowerCase()}`);
   });

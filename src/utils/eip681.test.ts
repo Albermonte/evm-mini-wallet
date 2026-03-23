@@ -30,13 +30,10 @@ describe("parseEip681", () => {
     });
   });
 
-  it("ignores invalid chain identifiers", () => {
-    expect(parseEip681("ethereum:0x1111111111111111111111111111111111111111@base?value=1")).toEqual(
-      {
-        address: "0x1111111111111111111111111111111111111111",
-        value: "1",
-      },
-    );
+  it("rejects invalid chain identifiers", () => {
+    expect(
+      parseEip681("ethereum:0x1111111111111111111111111111111111111111@base?value=1"),
+    ).toBeNull();
   });
 
   it("returns null for invalid inputs", () => {

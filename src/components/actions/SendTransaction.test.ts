@@ -19,6 +19,7 @@ async function renderSendTransaction(options?: {
   fetchedTokens?: any[];
   parsedQr?: {
     address: string;
+    chainId?: number;
     value?: string;
     token?: string;
     amount?: string;
@@ -39,7 +40,17 @@ async function renderSendTransaction(options?: {
   const estimateGas = vi.fn().mockResolvedValue(21_000n);
   const estimateFeesPerGas = vi.fn().mockResolvedValue({ maxFeePerGas: 10n });
   const addToast = vi.fn();
-  const fetchTokenBalances = vi.fn().mockResolvedValue(options?.fetchedTokens ?? []);
+  const walletTokens = ref(options?.fetchedTokens ?? []);
+  const refetchWalletTokens = vi.fn();
+  const switchChain = vi.fn(
+    (
+      { chainId: nextChainId }: { chainId: number },
+      callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void },
+    ) => {
+      chainId.value = nextChainId;
+      callbacks?.onSuccess?.();
+    },
+  );
 
   const sendTransaction = vi.fn(
     (
@@ -73,6 +84,13 @@ async function renderSendTransaction(options?: {
       refetch: vi.fn(),
     }),
     useClient: () => ref({}),
+    useSwitchChain: () => ({
+      chains: [
+        { id: 1, name: "Ethereum" },
+        { id: 8453, name: "Base" },
+      ],
+      switchChain,
+    }),
     useSendTransaction: () => ({
       sendTransaction,
       data: txHash,
@@ -99,23 +117,22 @@ async function renderSendTransaction(options?: {
     }),
   }));
 
-  vi.doMock("../../utils/token-balances", () => ({
-    fetchTokenBalances,
-    clearTokenCache: vi.fn(),
-  }));
-
-  vi.doMock("../../utils/blockscout", () => ({
-    clearTransactionCache: vi.fn(),
-  }));
-
-  vi.doMock("@tanstack/vue-query", () => ({
-    useQueryClient: () => ({
-      invalidateQueries: vi.fn(),
+  vi.doMock("../../composables/useWalletTokens", () => ({
+    useWalletTokens: () => ({
+      tokens: walletTokens,
+      status: ref("success"),
+      error: ref(null),
+      isLoading: ref(false),
+      isUnsupported: ref(false),
+      refetch: refetchWalletTokens,
     }),
   }));
 
-  vi.doMock("../../composables/useTransactionNotifier", () => ({
-    notifyTransactionConfirmed: vi.fn(),
+  const invalidateQueries = vi.fn();
+  vi.doMock("@tanstack/vue-query", () => ({
+    useQueryClient: () => ({
+      invalidateQueries,
+    }),
   }));
 
   vi.doMock("reka-ui", () => ({
@@ -174,7 +191,8 @@ async function renderSendTransaction(options?: {
     estimateFeesPerGas,
     addToast,
     sendTransaction,
-    fetchTokenBalances,
+    invalidateQueries,
+    switchChain,
   };
 }
 
@@ -312,6 +330,37 @@ describe("SendTransaction", () => {
     expect(addToast).toHaveBeenCalledWith("Address scanned", "success");
   });
 
+  it("blocks a scanned send when the QR targets a different chain", async () => {
+    const { wrapper, sendTransaction, switchChain } = await renderSendTransaction({
+      parsedQr: {
+        address: OTHER_ADDRESS,
+        chainId: 1,
+        value: "250000000000000000",
+      },
+    });
+
+    await wrapper.get('button[aria-label="Scan QR code"]').trigger("click");
+    await nextTick();
+    await wrapper.get('[data-testid="qr-scanner"]').trigger("click");
+    await nextTick();
+
+    expect(wrapper.text()).toContain("Switch to Ethereum");
+
+    const sendButton = wrapper.findAll("button").find((button) => button.text().includes("Send"));
+    expect(sendButton?.attributes("disabled")).toBeDefined();
+
+    await sendButton!.trigger("click");
+    expect(sendTransaction).not.toHaveBeenCalled();
+
+    const switchButton = wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Switch to Ethereum"));
+    await switchButton!.trigger("click");
+    await nextTick();
+
+    expect(switchChain).toHaveBeenCalledWith({ chainId: 1 }, expect.any(Object));
+  });
+
   it("rejects invalid QR payloads", async () => {
     const { wrapper, addToast } = await renderSendTransaction({
       parsedQr: null,
@@ -342,7 +391,7 @@ describe("SendTransaction", () => {
   });
 
   it("refreshes token balances and shows a confirmation toast after a successful receipt", async () => {
-    const { wrapper, addToast, fetchTokenBalances } = await renderSendTransaction({
+    const { wrapper, addToast, invalidateQueries } = await renderSendTransaction({
       fetchedTokens: [
         {
           token: {
@@ -374,6 +423,7 @@ describe("SendTransaction", () => {
     await nextTick();
 
     expect(addToast).toHaveBeenCalledWith("Transaction confirmed", "success");
-    expect(fetchTokenBalances).toHaveBeenCalledTimes(2);
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["wallet-tokens"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["wallet-activity"] });
   });
 });

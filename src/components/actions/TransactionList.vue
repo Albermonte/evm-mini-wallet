@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { watch, ref, computed } from "vue";
+import { computed } from "vue";
 import { useConnection, useChainId } from "@wagmi/vue";
-import { useTimeoutPoll } from "@vueuse/core";
 import {
   ArrowUpRight,
   ArrowDownLeft,
@@ -13,37 +12,18 @@ import {
   Settings,
   Clock,
 } from "lucide-vue-next";
-import { fetchBlockscoutTransactions, type Transaction } from "../../utils/blockscout";
+import type { Transaction } from "../../utils/blockscout";
 import EmptyState from "../ui/EmptyState.vue";
 import { getExplorerTxUrl, chainMeta } from "../../utils/chains";
 import { formatBalance, truncateAddress } from "../../utils/format";
 import { formatUnits } from "viem";
-import { onTransactionConfirmed } from "../../composables/useTransactionNotifier";
+import { useWalletActivity } from "../../composables/useWalletActivity";
+import BaseButton from "../ui/BaseButton.vue";
 
 const { address } = useConnection();
 const chainId = useChainId();
 
-const transactions = ref<Transaction[]>([]);
-const isLoading = ref(false);
-
-async function fetchTransactions() {
-  if (!address.value || !chainId.value) {
-    transactions.value = [];
-    return;
-  }
-
-  isLoading.value = true;
-  try {
-    transactions.value = await fetchBlockscoutTransactions(chainId.value, address.value);
-  } catch {
-    transactions.value = [];
-  }
-  isLoading.value = false;
-}
-
-useTimeoutPoll(fetchTransactions, 30_000, { immediateCallback: true });
-watch([chainId, address], fetchTransactions);
-onTransactionConfirmed(fetchTransactions);
+const { transactions, isLoading, status, error, refetch } = useWalletActivity();
 
 function isSent(tx: Transaction): boolean {
   return tx.from.toLowerCase() === address.value?.toLowerCase();
@@ -70,7 +50,6 @@ function actionLabel(tx: Transaction): string {
   if (m.includes("unstake")) return "Unstake";
   if (m.includes("mint")) return "Mint";
   if (m.startsWith("0x")) return "Contract Call";
-  // Capitalize first letter of method name
   return tx.method.charAt(0).toUpperCase() + tx.method.slice(1);
 }
 
@@ -189,7 +168,19 @@ const nativeSymbol = computed(() => chainMeta[chainId.value]?.chain.nativeCurren
 const recentTransactions = computed(() =>
   transactions.value.slice(0, 10).map((tx) => {
     const label = actionLabel(tx);
-    return { tx, label, style: iconStyle(tx) };
+    const sent = isSent(tx);
+    const txHasValue = hasValue(tx);
+    return {
+      tx,
+      label,
+      style: iconStyle(tx),
+      sent,
+      txHasValue,
+      subtitle: subtitle(tx),
+      formattedValue: txHasValue ? formatValue(tx.value) : null,
+      formattedFee: !txHasValue ? formatFee(tx.fee) : null,
+      formattedTime: formatTime(tx.timestamp),
+    };
   }),
 );
 </script>
@@ -219,9 +210,25 @@ const recentTransactions = computed(() =>
     </div>
 
     <!-- Transaction list -->
-    <div v-else-if="recentTransactions.length > 0" class="flex flex-col gap-1">
+    <div
+      v-else-if="status === 'success' && recentTransactions.length > 0"
+      class="flex flex-col gap-1"
+    >
       <a
-        v-for="({ tx, label, style }, i) in recentTransactions"
+        v-for="(
+          {
+            tx,
+            label,
+            style,
+            sent,
+            txHasValue,
+            subtitle: sub,
+            formattedValue,
+            formattedFee,
+            formattedTime,
+          },
+          i
+        ) in recentTransactions"
         :key="tx.hash"
         :href="getExplorerTxUrl(chainId, tx.hash)"
         target="_blank"
@@ -267,38 +274,56 @@ const recentTransactions = computed(() =>
             </span>
           </div>
           <p class="truncate text-xs text-surface-400 dark:text-surface-500">
-            {{ subtitle(tx) }}
+            {{ sub }}
           </p>
         </div>
 
         <!-- Value & time -->
         <div class="shrink-0 text-right">
           <p
-            v-if="hasValue(tx)"
+            v-if="txHasValue"
             class="text-sm font-medium"
-            :class="
-              isSent(tx) ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
-            "
+            :class="sent ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'"
           >
-            {{ isSent(tx) ? "-" : "+" }}{{ formatValue(tx.value) }} {{ nativeSymbol }}
+            {{ sent ? "-" : "+" }}{{ formattedValue }} {{ nativeSymbol }}
           </p>
           <p
             v-else
             class="text-[11px] text-surface-400 dark:text-surface-500"
-            :title="`Fee: ${formatFee(tx.fee)} ${nativeSymbol}`"
+            :title="`Fee: ${formattedFee} ${nativeSymbol}`"
           >
-            Fee: {{ formatFee(tx.fee) }}
+            Fee: {{ formattedFee }}
           </p>
           <p class="text-[11px] text-surface-400 dark:text-surface-500">
-            {{ formatTime(tx.timestamp) }}
+            {{ formattedTime }}
           </p>
         </div>
       </a>
     </div>
 
-    <!-- Empty state -->
     <EmptyState
-      v-else-if="!isLoading"
+      v-else-if="status === 'unsupported'"
+      title="Activity unavailable on BNB Smart Chain"
+      description="This network supports send and receive, but in-app activity history is not available yet"
+    >
+      <template #icon>
+        <Clock class="h-6 w-6 text-surface-400 dark:text-surface-500" />
+      </template>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="status === 'error'"
+      title="Could not load activity"
+      :description="error?.message ?? 'Try again in a moment'"
+    >
+      <template #icon>
+        <Clock class="h-6 w-6 text-surface-400 dark:text-surface-500" />
+      </template>
+      <BaseButton variant="ghost" @click="refetch()">Retry</BaseButton>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="status === 'success' && !isLoading"
       title="No activity yet"
       description="Your transactions will appear here once you send or receive tokens"
     >

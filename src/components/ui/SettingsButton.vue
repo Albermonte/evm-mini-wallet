@@ -19,8 +19,8 @@ const options: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
     data-testid="settings-dock"
     class="fixed"
     style="
-      right: calc(1.25rem + env(safe-area-inset-right));
-      bottom: calc(1.25rem + env(safe-area-inset-bottom));
+      right: max(1.75rem, calc(1rem + env(safe-area-inset-right)));
+      bottom: max(1.75rem, calc(1rem + env(safe-area-inset-bottom)));
     "
   >
     <PopoverRoot v-model:open="open">

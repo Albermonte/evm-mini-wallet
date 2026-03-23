@@ -66,7 +66,7 @@ describe("fetchBlockscoutTransactions", () => {
     ]);
   });
 
-  it("returns an empty list when the API request fails", async () => {
+  it("throws a load error when the API request fails", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -75,6 +75,8 @@ describe("fetchBlockscoutTransactions", () => {
     );
 
     const { fetchBlockscoutTransactions } = await import("./blockscout");
-    await expect(fetchBlockscoutTransactions(8453, ACCOUNT)).resolves.toEqual([]);
+    await expect(fetchBlockscoutTransactions(8453, ACCOUNT)).rejects.toThrow(
+      "Could not load activity",
+    );
   });
 });

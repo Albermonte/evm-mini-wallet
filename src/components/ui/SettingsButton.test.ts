@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("SettingsButton", () => {
-  it("anchors itself with safe-area-aware viewport offsets", async () => {
+  it("anchors itself with safe-area-aware viewport offsets and a minimum corner gutter", async () => {
     vi.doMock("reka-ui", () => ({
       PopoverRoot: defineComponent({
         setup(_p, { slots }) {
@@ -44,10 +44,9 @@ describe("SettingsButton", () => {
     const { default: SettingsButton } = await import("./SettingsButton.vue");
     const wrapper = mount(SettingsButton);
     const dock = wrapper.get('[data-testid="settings-dock"]');
+    const style = dock.element.getAttribute("style") ?? "";
 
-    expect(dock.attributes("style")).toContain(
-      "bottom: calc(1.25rem + env(safe-area-inset-bottom))",
-    );
-    expect(dock.attributes("style")).toContain("right: calc(1.25rem + env(safe-area-inset-right))");
+    expect(style).toContain("bottom: max(1.75rem, calc(1rem + env(safe-area-inset-bottom)))");
+    expect(style).toContain("right: max(1.75rem, calc(1rem + env(safe-area-inset-right)))");
   });
 });

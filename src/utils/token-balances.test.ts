@@ -12,8 +12,17 @@ describe("fetchTokenBalances", () => {
   it("merges Blockscout-discovered tokens with well-known tokens and reads balances via RPC", async () => {
     const multicall = vi.fn().mockResolvedValue([
       { status: "success", result: 5_000_000n },
+      { status: "success", result: "Tether USD" },
+      { status: "success", result: "USDT" },
+      { status: "success", result: 6 },
       { status: "success", result: 0n },
+      { status: "success", result: "USD Coin" },
+      { status: "success", result: "USDC" },
+      { status: "success", result: 6 },
       { status: "success", result: 3_000_000_000_000_000_000n },
+      { status: "success", result: "New Token" },
+      { status: "success", result: "NEW" },
+      { status: "success", result: 18 },
     ]);
     const getBalance = vi.fn().mockResolvedValue(1_000_000_000_000_000_000n);
 
@@ -177,6 +186,84 @@ describe("fetchTokenBalances", () => {
     expect(result).toHaveLength(2);
     expect(result[0]).toMatchObject({ token: { isNative: true } });
     expect(result[1]).toMatchObject({ token: { symbol: "USDT" } });
+  });
+
+  it("uses on-chain ERC-20 metadata instead of trusting discovered metadata", async () => {
+    const multicall = vi.fn().mockResolvedValue([
+      { status: "success", result: 4_200_000n },
+      { status: "success", result: "Verified USD" },
+      { status: "success", result: "vUSD" },
+      { status: "success", result: 6 },
+    ]);
+    const getBalance = vi.fn().mockResolvedValue(1_000_000_000_000_000_000n);
+
+    vi.doMock("./chains", async () => {
+      const actual = await vi.importActual<typeof import("./chains")>("./chains");
+      return {
+        ...actual,
+        chainMeta: {
+          8453: {
+            chain: {
+              id: 8453,
+              nativeCurrency: { symbol: "ETH", name: "Ether", decimals: 18 },
+            },
+            color: "#0052FF",
+            explorerUrl: "https://basescan.org",
+            logo: "base.png",
+          },
+        },
+      };
+    });
+
+    vi.doMock("./well-known-tokens", () => ({
+      wellKnownTokens: {
+        8453: [],
+      },
+    }));
+
+    vi.doMock("viem", async () => {
+      const actual = await vi.importActual<typeof import("viem")>("viem");
+      return {
+        ...actual,
+        createPublicClient: vi.fn(() => ({ getBalance, multicall })),
+        http: vi.fn(),
+      };
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              token: {
+                address_hash: "0x3333333333333333333333333333333333333333",
+                name: "Untrusted Name",
+                symbol: "UNTRUSTED",
+                decimals: "18",
+                icon_url: null,
+                type: "ERC-20",
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    const { fetchTokenBalances } = await import("./token-balances");
+    const result = await fetchTokenBalances(8453, ACCOUNT);
+
+    expect(result[1]).toMatchObject({
+      token: {
+        address: "0x3333333333333333333333333333333333333333",
+        name: "Verified USD",
+        symbol: "vUSD",
+        decimals: 6,
+        source: "discovered",
+        verification: "verified",
+      },
+    });
   });
 
   it("returns empty array for unknown chain", async () => {

@@ -6,6 +6,9 @@ import { useTheme } from "../../composables/useTheme";
 
 const { isConnected } = useConnection();
 const { logoSrc } = useTheme();
+const emit = defineEmits<{
+  openReceive: [];
+}>();
 </script>
 
 <template>
@@ -22,7 +25,7 @@ const { logoSrc } = useTheme();
     </div>
 
     <!-- Center: Account address (when connected) -->
-    <AccountInfo v-if="isConnected" />
+    <AccountInfo v-if="isConnected" @open-receive="emit('openReceive')" />
 
     <!-- Right: Chain selector (when connected) -->
     <div class="flex flex-1 justify-end">

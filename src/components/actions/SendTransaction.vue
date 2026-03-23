@@ -5,6 +5,7 @@ import {
   useChainId,
   useBalance,
   useClient,
+  useSwitchChain,
   useSendTransaction,
   useWaitForTransactionReceipt,
 } from "@wagmi/vue";
@@ -19,43 +20,27 @@ import TokenLogo from "../ui/TokenLogo.vue";
 import QrScanner from "./QrScanner.vue";
 import { validateAddress, validateAmount, isUserRejection } from "../../utils/validation";
 import { formatBalance } from "../../utils/format";
-import { getExplorerTxUrl } from "../../utils/chains";
+import { chainMeta, getExplorerTxUrl } from "../../utils/chains";
 import { useToast } from "../../composables/useToast";
 import { calculateMaxSendable, resolveTransactionChainId } from "../../utils/transactions";
 import { erc20Abi, type Erc20TokenInfo } from "../../utils/tokens";
-import {
-  fetchTokenBalances,
-  clearTokenCache,
-  type TokenWithBalance,
-} from "../../utils/token-balances";
-import { clearTransactionCache } from "../../utils/blockscout";
+import type { TokenWithBalance } from "../../utils/token-balances";
 import { getNativeTokenLogoUrls } from "../../utils/token-logos";
 import { parseEip681 } from "../../utils/eip681";
 import { useQueryClient } from "@tanstack/vue-query";
-import { notifyTransactionConfirmed } from "../../composables/useTransactionNotifier";
+import { invalidateWalletQueries } from "../../utils/query-keys";
+import { useWalletTokens } from "../../composables/useWalletTokens";
 
 const { address } = useConnection();
 const chainId = useChainId();
 const { data: nativeBalance, refetch: refetchNativeBalance } = useBalance({ address });
 const client = useClient({ chainId });
+const { switchChain } = useSwitchChain();
 const { addToast } = useToast();
 const queryClient = useQueryClient();
+const walletTokens = useWalletTokens();
+const fetchedTokens = walletTokens.tokens;
 
-const fetchedTokens = ref<TokenWithBalance[]>([]);
-
-async function fetchAvailableTokens() {
-  if (!address.value || !chainId.value) {
-    fetchedTokens.value = [];
-    return;
-  }
-  try {
-    fetchedTokens.value = await fetchTokenBalances(chainId.value, address.value);
-  } catch {
-    fetchedTokens.value = [];
-  }
-}
-
-// Token selection: null = native token
 const selectedTokenAddress = ref<Address | null>(null);
 
 const erc20Tokens = computed(() =>
@@ -89,12 +74,10 @@ const currentBalance = computed(() => {
   return nativeBalance.value?.value ?? null;
 });
 
-// Fetch available tokens from Blockscout and reset selection when chain/address changes
 watch(
   [chainId, address],
   () => {
     selectedTokenAddress.value = null;
-    fetchAvailableTokens();
   },
   { immediate: true },
 );
@@ -104,11 +87,32 @@ const amount = ref("");
 const recipientError = ref<string | null>(null);
 const amountError = ref<string | null>(null);
 const submittedChainId = ref<number | null>(null);
+const requestedChainId = ref<number | null>(null);
 
 const trackedChainId = computed(() =>
   resolveTransactionChainId(submittedChainId.value, chainId.value),
 );
 const receiptChainId = ref<number | undefined>(chainId.value);
+const requestedChainName = computed(() => {
+  if (!requestedChainId.value) return null;
+  return chainMeta[requestedChainId.value]?.chain.name ?? `Chain ${requestedChainId.value}`;
+});
+const requiresChainSwitch = computed(
+  () =>
+    requestedChainId.value !== null &&
+    chainId.value !== undefined &&
+    requestedChainId.value !== chainId.value,
+);
+const selectedTokenIsVerified = computed(
+  () => !selectedEntry.value || selectedEntry.value.token.verification !== "unverified",
+);
+const sendDisabled = computed(
+  () =>
+    isSending.value ||
+    isConfirming.value ||
+    requiresChainSwitch.value ||
+    !selectedTokenIsVerified.value,
+);
 
 const {
   sendTransaction,
@@ -189,6 +193,19 @@ async function setMax() {
 }
 
 function handleSend() {
+  if (requiresChainSwitch.value) {
+    addToast(
+      `Switch to ${requestedChainName.value ?? "the requested network"} to continue`,
+      "info",
+    );
+    return;
+  }
+
+  if (!selectedTokenIsVerified.value) {
+    addToast("Token metadata could not be verified on-chain", "error");
+    return;
+  }
+
   recipientError.value = validateAddress(recipient.value);
   amountError.value = validateAmount(
     amount.value,
@@ -284,27 +301,15 @@ watch(receipt, (val) => {
   if (val) {
     if (val.status === "success") {
       addToast("Transaction confirmed", "success");
-      // Bust in-memory caches so RPC fetches get fresh on-chain data
-      clearTokenCache();
-      clearTransactionCache();
-      // Refetch native balance via RPC (wagmi)
       refetchNativeBalance();
-      // Refresh the local token picker via RPC
-      fetchAvailableTokens();
-      // Invalidate portfolio balances so BalanceDisplay + TokenList update
-      queryClient.invalidateQueries({ queryKey: ["portfolio-balances"] });
-      // Notify TransactionList to refetch
-      notifyTransactionConfirmed();
+      invalidateWalletQueries(queryClient);
     } else {
       addToast("Transaction failed", "error");
     }
   }
 });
 
-// Token selector dropdown
 const showTokenPicker = ref(false);
-
-// QR scanner
 const showScanner = ref(false);
 
 function handleScanned(value: string) {
@@ -318,6 +323,7 @@ function handleScanned(value: string) {
 
   recipient.value = parsed.address;
   recipientError.value = null;
+  requestedChainId.value = parsed.chainId ?? null;
 
   // Pre-fill amount from EIP-681 value (native, in wei)
   if (parsed.value && !isTokenSend.value && nativeBalance.value) {
@@ -349,6 +355,18 @@ function handleScanned(value: string) {
 
   addToast("Address scanned", "success");
 }
+
+function handleSwitchToRequestedChain() {
+  if (!requestedChainId.value) return;
+  switchChain(
+    { chainId: requestedChainId.value },
+    {
+      onError(err) {
+        addToast(err.message, "error");
+      },
+    },
+  );
+}
 </script>
 
 <template>
@@ -361,7 +379,7 @@ function handleScanned(value: string) {
           <button
             type="button"
             class="flex w-full items-center gap-2 rounded-lg border border-surface-300 bg-white px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-surface-100 dark:border-surface-600 dark:bg-surface-900 dark:hover:bg-surface-800"
-            :disabled="isSending || isConfirming"
+            :disabled="sendDisabled"
           >
             <TokenLogo :urls="currentLogoUrls" :symbol="currentSymbol" size="h-6 w-6" />
             <span class="flex-1 font-medium text-surface-900 dark:text-surface-100">
@@ -440,7 +458,7 @@ function handleScanned(value: string) {
             v-model="recipient"
             placeholder="0x..."
             :error="recipientError"
-            :disabled="isSending || isConfirming"
+            :disabled="sendDisabled"
             autocomplete="off"
             autocapitalize="none"
             spellcheck="false"
@@ -449,7 +467,7 @@ function handleScanned(value: string) {
         <button
           type="button"
           class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-surface-300 bg-white text-surface-500 transition-colors hover:bg-surface-100 hover:text-surface-900 dark:border-surface-600 dark:bg-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="isSending || isConfirming"
+          :disabled="sendDisabled"
           aria-label="Scan QR code"
           @click="showScanner = true"
         >
@@ -460,13 +478,23 @@ function handleScanned(value: string) {
 
     <QrScanner v-if="showScanner" @scanned="handleScanned" @close="showScanner = false" />
 
+    <div
+      v-if="requiresChainSwitch && requestedChainName"
+      class="flex items-center justify-between gap-3 rounded-lg border border-black px-4 py-3 text-sm text-black dark:border-white dark:text-white"
+    >
+      <p class="min-w-0 flex-1 font-medium">Switch to {{ requestedChainName }} to continue</p>
+      <BaseButton variant="ghost" @click="handleSwitchToRequestedChain">
+        Switch to {{ requestedChainName }}
+      </BaseButton>
+    </div>
+
     <div>
       <div class="flex items-center justify-between">
         <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Amount</label>
         <button
           type="button"
           class="rounded px-1.5 py-0.5 text-xs font-semibold text-surface-900 hover:bg-surface-100 dark:text-white dark:hover:bg-surface-800"
-          :disabled="isSending || isConfirming || currentBalance === null"
+          :disabled="sendDisabled || currentBalance === null"
           @click="setMax"
         >
           Max
@@ -476,7 +504,7 @@ function handleScanned(value: string) {
         v-model="amount"
         :placeholder="`0.0 ${currentSymbol}`"
         :error="amountError"
-        :disabled="isSending || isConfirming"
+        :disabled="sendDisabled"
         inputmode="decimal"
         class="mt-1.5"
       />
@@ -486,6 +514,7 @@ function handleScanned(value: string) {
       <BaseButton
         variant="primary"
         :loading="isSending || isConfirming"
+        :disabled="sendDisabled"
         class="flex-1"
         @click="handleSend"
       >

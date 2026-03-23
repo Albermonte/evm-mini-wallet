@@ -7,6 +7,12 @@ interface ChainMeta {
   color: string;
   explorerUrl: string;
   logo: string;
+  capabilities: {
+    balances: boolean;
+    tokenDiscovery: boolean;
+    activity: boolean;
+    pricing: boolean;
+  };
 }
 
 export const chainMeta: Record<number, ChainMeta> = {
@@ -15,42 +21,84 @@ export const chainMeta: Record<number, ChainMeta> = {
     color: "#627EEA",
     explorerUrl: "https://etherscan.io",
     logo: getChainLogoUrl(mainnet.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    },
   },
   [polygon.id]: {
     chain: polygon,
     color: "#8247E5",
     explorerUrl: "https://polygonscan.com",
     logo: getChainLogoUrl(polygon.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    },
   },
   [arbitrum.id]: {
     chain: arbitrum,
     color: "#28A0F0",
     explorerUrl: "https://arbiscan.io",
     logo: getChainLogoUrl(arbitrum.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    },
   },
   [optimism.id]: {
     chain: optimism,
     color: "#FF0420",
     explorerUrl: "https://optimistic.etherscan.io",
     logo: getChainLogoUrl(optimism.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    },
   },
   [base.id]: {
     chain: base,
     color: "#0052FF",
     explorerUrl: "https://basescan.org",
     logo: getChainLogoUrl(base.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    },
   },
   [bsc.id]: {
     chain: bsc,
     color: "#F0B90B",
     explorerUrl: "https://bscscan.com",
     logo: getChainLogoUrl(bsc.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: false,
+      activity: false,
+      pricing: true,
+    },
   },
   [sepolia.id]: {
     chain: sepolia,
     color: "#627EEA",
     explorerUrl: "https://sepolia.etherscan.io",
     logo: getChainLogoUrl(mainnet.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: false,
+    },
   },
 };
 
@@ -68,6 +116,20 @@ export function getExplorerTxUrl(chainId: number, hash: string): string {
   const meta = chainMeta[chainId];
   if (!meta) return "";
   return `${meta.explorerUrl}/tx/${hash}`;
+}
+
+export function getChainCapabilities(chainId: number) {
+  const meta = chainMeta[chainId];
+  if (!meta) {
+    return {
+      balances: false,
+      tokenDiscovery: false,
+      activity: false,
+      pricing: false,
+    };
+  }
+
+  return meta.capabilities;
 }
 
 const LAST_CHAIN_KEY = "last-chain-id";

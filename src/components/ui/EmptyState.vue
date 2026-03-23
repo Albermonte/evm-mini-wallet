@@ -16,5 +16,6 @@ defineProps<{
       <p class="text-base font-medium text-surface-700 dark:text-surface-300">{{ title }}</p>
       <p class="text-sm text-surface-400 dark:text-surface-500">{{ description }}</p>
     </div>
+    <slot />
   </div>
 </template>

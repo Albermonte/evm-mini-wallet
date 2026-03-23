@@ -1,9 +1,14 @@
 import type { Address } from "viem";
 
+export type TokenSource = "native" | "curated" | "discovered";
+export type TokenVerification = "verified" | "unverified";
+
 interface BaseTokenInfo {
   symbol: string;
   name: string;
   decimals: number;
+  source?: TokenSource;
+  verification?: TokenVerification;
 }
 
 export interface NativeTokenInfo extends BaseTokenInfo {
@@ -39,5 +44,26 @@ export const erc20Abi = [
       { name: "amount", type: "uint256" },
     ],
     outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    name: "name",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "string" }],
+  },
+  {
+    name: "symbol",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "string" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
   },
 ] as const;

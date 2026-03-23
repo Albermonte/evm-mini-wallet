@@ -2,37 +2,31 @@
 import { ref } from "vue";
 import { useConnection } from "@wagmi/vue";
 import { useQueryClient } from "@tanstack/vue-query";
+import { invalidateWalletQueries } from "./utils/query-keys";
 import {
   ToastProvider,
   TooltipProvider,
-  DialogRoot,
-  DialogPortal,
-  DialogOverlay,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
   TabsRoot,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "reka-ui";
-import { ArrowUpRight, X } from "lucide-vue-next";
+import { ArrowUpRight } from "lucide-vue-next";
 import { Motion } from "motion-v";
 import AppHeader from "./components/layout/AppHeader.vue";
 import ConnectWallet from "./components/wallet/ConnectWallet.vue";
 import BalanceDisplay from "./components/wallet/BalanceDisplay.vue";
 import TokenList from "./components/wallet/TokenList.vue";
+import ReceiveSheet from "./components/wallet/ReceiveSheet.vue";
 import SendTransaction from "./components/actions/SendTransaction.vue";
 import TransactionList from "./components/actions/TransactionList.vue";
+import BaseModal from "./components/ui/BaseModal.vue";
 import Toast from "./components/ui/Toast.vue";
 import SettingsButton from "./components/ui/SettingsButton.vue";
 import { usePullToRefresh } from "./composables/usePullToRefresh";
-import { clearTokenCache } from "./utils/token-balances";
-import { clearTransactionCache } from "./utils/blockscout";
-import { notifyTransactionConfirmed } from "./composables/useTransactionNotifier";
 
 const { isConnected } = useConnection();
+const showReceive = ref(false);
 const showSend = ref(false);
 const activeTab = ref("tokens");
 
@@ -42,13 +36,7 @@ const queryClient = useQueryClient();
 const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
   scrollTarget: scrollContainer,
   async onRefresh() {
-    clearTokenCache();
-    clearTransactionCache();
-    queryClient.invalidateQueries({ queryKey: ["portfolio-balances"] });
-    queryClient.invalidateQueries({ queryKey: ["portfolio-prices"] });
-    notifyTransactionConfirmed();
-    // Wait for queries to settle
-    await queryClient.refetchQueries({ queryKey: ["portfolio-balances"] });
+    await invalidateWalletQueries(queryClient);
   },
 });
 </script>
@@ -66,7 +54,7 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
           padding-left: env(safe-area-inset-left);
         "
       >
-        <AppHeader />
+        <AppHeader @open-receive="showReceive = true" />
 
         <main
           ref="scrollContainer"
@@ -179,37 +167,19 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
             </div>
           </Transition>
         </main>
-
-        <!-- Send Sheet -->
-        <DialogRoot v-model:open="showSend">
-          <DialogPortal>
-            <DialogOverlay class="send-overlay fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" />
-            <DialogContent
-              class="send-sheet fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border-t border-surface-200 bg-white px-5 pb-8 pt-3 shadow-2xl sm:px-6 dark:border-surface-700 dark:bg-surface-900"
-            >
-              <div class="mb-3 flex justify-center">
-                <div class="h-1.5 w-12 rounded-full bg-surface-300 dark:bg-surface-600" />
-              </div>
-              <div class="mb-5 flex items-center justify-between">
-                <DialogTitle class="text-lg font-bold text-surface-900 dark:text-surface-100">
-                  Send
-                </DialogTitle>
-                <DialogDescription class="sr-only"> Send a transaction </DialogDescription>
-                <DialogClose
-                  aria-label="Close"
-                  class="rounded-lg p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-800 dark:hover:text-surface-300"
-                >
-                  <X class="h-5 w-5" />
-                </DialogClose>
-              </div>
-              <SendTransaction />
-            </DialogContent>
-          </DialogPortal>
-        </DialogRoot>
-
-        <SettingsButton />
-        <Toast />
       </div>
+
+      <BaseModal v-model="showReceive" title="Receive" description="Receive funds into this wallet">
+        <ReceiveSheet />
+      </BaseModal>
+
+      <!-- Send Sheet -->
+      <BaseModal v-model="showSend" title="Send" description="Send a transaction">
+        <SendTransaction />
+      </BaseModal>
+
+      <SettingsButton />
+      <Toast />
     </TooltipProvider>
   </ToastProvider>
 </template>
@@ -222,29 +192,6 @@ const { pullDistance, isRefreshing, isPulling } = usePullToRefresh({
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.send-overlay {
-  animation: overlayIn 250ms ease-out;
-}
-.send-overlay[data-state="closed"] {
-  animation: overlayOut 150ms ease forwards;
-}
-.send-sheet {
-  animation: sheetSlideUp 400ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-.send-sheet[data-state="closed"] {
-  animation: sheetSlideDown 200ms var(--ease-out-expo) forwards;
-}
-@keyframes sheetSlideUp {
-  from {
-    transform: translateY(100%);
-  }
-}
-@keyframes sheetSlideDown {
-  to {
-    transform: translateY(100%);
-  }
 }
 
 .tab-content[data-state="active"] {

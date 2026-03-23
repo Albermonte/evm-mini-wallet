@@ -51,8 +51,9 @@ export function parseEip681(input: string): Eip681Result | null {
   const atIdx = addressPart.indexOf("@");
   if (atIdx !== -1) {
     const chainStr = addressPart.slice(atIdx + 1);
+    if (!/^\d+$/.test(chainStr)) return null;
     chainId = Number.parseInt(chainStr, 10);
-    if (Number.isNaN(chainId)) chainId = undefined;
+    if (Number.isNaN(chainId)) return null;
     addressPart = addressPart.slice(0, atIdx);
   }
 

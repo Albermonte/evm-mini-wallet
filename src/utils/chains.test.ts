@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   DEFAULT_CHAIN_COLOR,
   chainMeta,
+  getChainCapabilities,
   getChainColor,
   getChainLogo,
   getExplorerTxUrl,
@@ -24,5 +25,20 @@ describe("chains helpers", () => {
   it("exports supported chains as a non-empty list", () => {
     expect(supportedChains.length).toBeGreaterThan(0);
     expect(supportedChains.map((chain) => chain.id)).toContain(8453);
+  });
+
+  it("describes per-chain data capabilities separately from support status", () => {
+    expect(getChainCapabilities(8453)).toMatchObject({
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    });
+    expect(getChainCapabilities(56)).toMatchObject({
+      balances: true,
+      tokenDiscovery: false,
+      activity: false,
+      pricing: true,
+    });
   });
 });

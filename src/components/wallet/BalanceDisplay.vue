@@ -4,7 +4,7 @@ import { usePortfolio } from "../../composables/usePortfolio";
 import { formatCurrency } from "../../utils/format";
 import { useAnimatedNumber } from "../../composables/useAnimatedNumber";
 
-const { isLoading, portfolioTotalFiat } = usePortfolio();
+const { isLoading, portfolioTotalFiat, hasKnownTotal } = usePortfolio();
 
 const animatedTotal = useAnimatedNumber(() => portfolioTotalFiat.value ?? 0, {
   duration: 900,
@@ -22,13 +22,22 @@ const formattedBalance = computed(() => formatCurrency(animatedTotal.value));
       </div>
 
       <p
-        v-else
+        v-else-if="hasKnownTotal"
         key="value"
         class="font-display text-[3.5rem] font-extrabold leading-none tracking-tighter text-black sm:text-7xl dark:text-white"
         style="overflow-wrap: break-word; min-width: 0"
       >
         {{ formattedBalance }}
       </p>
+
+      <div v-else key="unavailable" class="flex flex-col items-center gap-2">
+        <p
+          class="font-display text-4xl font-extrabold leading-none tracking-tighter text-black dark:text-white"
+        >
+          --
+        </p>
+        <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Value unavailable</p>
+      </div>
     </Transition>
   </div>
 </template>

@@ -21,6 +21,7 @@ describe("BalanceDisplay", () => {
       usePortfolio: () => ({
         isLoading: ref(true),
         portfolioTotalFiat: ref(null),
+        hasKnownTotal: ref(false),
       }),
     }));
 
@@ -35,6 +36,7 @@ describe("BalanceDisplay", () => {
       usePortfolio: () => ({
         isLoading: ref(false),
         portfolioTotalFiat: ref(1234.56),
+        hasKnownTotal: ref(true),
       }),
     }));
 
@@ -44,17 +46,18 @@ describe("BalanceDisplay", () => {
     expect(wrapper.text()).toContain("$1,234.56");
   });
 
-  it("renders $0.00 when no priced portfolio total is available", async () => {
+  it("renders an unavailable state when the portfolio total cannot be priced", async () => {
     vi.doMock("../../composables/usePortfolio", () => ({
       usePortfolio: () => ({
         isLoading: ref(false),
         portfolioTotalFiat: ref(null),
+        hasKnownTotal: ref(false),
       }),
     }));
 
     const { default: BalanceDisplay } = await import("./BalanceDisplay.vue");
     const wrapper = mount(BalanceDisplay);
 
-    expect(wrapper.text()).toContain("$0.00");
+    expect(wrapper.text()).toContain("Value unavailable");
   });
 });

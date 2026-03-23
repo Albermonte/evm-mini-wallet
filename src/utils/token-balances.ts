@@ -1,11 +1,10 @@
-import { type Address, createPublicClient, http } from "viem";
+import { type Address, type PublicClient, createPublicClient, http } from "viem";
 import type { Erc20TokenInfo, TokenInfo } from "./tokens";
 import { erc20Abi } from "./tokens";
 import { getNativeTokenLogoUrls, getTokenLogoUrls } from "./token-logos";
-import { chainMeta } from "./chains";
+import { chainMeta, getChainCapabilities } from "./chains";
 import { wellKnownTokens } from "./well-known-tokens";
-
-const CACHE_TTL = 30_000; // 30s — balances change, so keep it short
+import { blockscoutApiUrls } from "./blockscout";
 
 export interface TokenWithBalance {
   token: TokenInfo;
@@ -13,27 +12,19 @@ export interface TokenWithBalance {
   logoUrls: string[];
 }
 
-const cache = new Map<string, { data: TokenWithBalance[]; timestamp: number }>();
-const pending = new Map<string, Promise<TokenWithBalance[]>>();
+const clientCache = new Map<number, PublicClient>();
 
-export function clearTokenCache() {
-  cache.clear();
+function getPublicClient(chainId: number): PublicClient | null {
+  const meta = chainMeta[chainId];
+  if (!meta) return null;
+
+  let client = clientCache.get(chainId);
+  if (!client) {
+    client = createPublicClient({ chain: meta.chain, transport: http() });
+    clientCache.set(chainId, client);
+  }
+  return client;
 }
-
-function getCacheKey(chainId: number, address: string): string {
-  return `${chainId}:${address.toLowerCase()}`;
-}
-
-// --- Blockscout token discovery ---
-
-const blockscoutApiUrls: Record<number, string> = {
-  1: "https://eth.blockscout.com",
-  137: "https://polygon.blockscout.com",
-  42161: "https://arbitrum.blockscout.com",
-  10: "https://optimism.blockscout.com",
-  8453: "https://base.blockscout.com",
-  11155111: "https://eth-sepolia.blockscout.com",
-};
 
 interface BlockscoutTokenItem {
   token: {
@@ -51,6 +42,8 @@ interface BlockscoutDiscoveryResponse {
 }
 
 async function discoverTokens(chainId: number, address: Address): Promise<Erc20TokenInfo[]> {
+  if (!getChainCapabilities(chainId).tokenDiscovery) return [];
+
   const baseUrl = blockscoutApiUrls[chainId];
   if (!baseUrl) return [];
 
@@ -65,6 +58,8 @@ async function discoverTokens(chainId: number, address: Address): Promise<Erc20T
       symbol: item.token.symbol,
       name: item.token.name,
       decimals: Number(item.token.decimals),
+      source: "discovered",
+      verification: "unverified",
     }));
 }
 
@@ -77,7 +72,8 @@ async function fetchNativeTokenBalance(
   const meta = chainMeta[chainId];
   if (!meta) return null;
 
-  const client = createPublicClient({ chain: meta.chain, transport: http() });
+  const client = getPublicClient(chainId);
+  if (!client) return null;
   const balance = await client.getBalance({ address });
   if (balance <= 0n) return null;
 
@@ -88,6 +84,8 @@ async function fetchNativeTokenBalance(
       name: meta.chain.nativeCurrency.name,
       decimals: meta.chain.nativeCurrency.decimals,
       isNative: true,
+      source: "native",
+      verification: "verified",
     },
     balance,
     logoUrls: getNativeTokenLogoUrls(chainId),
@@ -99,7 +97,11 @@ function mergeTokenLists(
   discovered: Erc20TokenInfo[],
 ): Erc20TokenInfo[] {
   const seen = new Set(wellKnown.map((t) => t.address.toLowerCase()));
-  const merged = [...wellKnown];
+  const merged: Erc20TokenInfo[] = wellKnown.map((token) => ({
+    ...token,
+    source: token.source ?? "curated",
+    verification: token.verification ?? "unverified",
+  }));
   for (const token of discovered) {
     if (!seen.has(token.address.toLowerCase())) {
       merged.push(token);
@@ -113,29 +115,71 @@ async function fetchErc20Balances(
   address: Address,
   tokens: Erc20TokenInfo[],
 ): Promise<TokenWithBalance[]> {
-  const meta = chainMeta[chainId];
-  if (!meta || tokens.length === 0) return [];
+  if (tokens.length === 0) return [];
 
-  const client = createPublicClient({ chain: meta.chain, transport: http() });
+  const client = getPublicClient(chainId);
+  if (!client) return [];
   const results = await client.multicall({
-    contracts: tokens.map((token) => ({
-      address: token.address,
-      abi: erc20Abi,
-      functionName: "balanceOf" as const,
-      args: [address],
-    })),
+    contracts: tokens.flatMap((token) => [
+      {
+        address: token.address,
+        abi: erc20Abi,
+        functionName: "balanceOf" as const,
+        args: [address],
+      },
+      {
+        address: token.address,
+        abi: erc20Abi,
+        functionName: "name" as const,
+      },
+      {
+        address: token.address,
+        abi: erc20Abi,
+        functionName: "symbol" as const,
+      },
+      {
+        address: token.address,
+        abi: erc20Abi,
+        functionName: "decimals" as const,
+      },
+    ]),
   });
 
   const balances: TokenWithBalance[] = [];
   for (let i = 0; i < tokens.length; i++) {
-    const res = results[i];
-    if (res?.status !== "success") continue;
-    const balance = res.result as bigint;
+    const resultOffset = i * 4;
+    const balanceResult = results[resultOffset];
+    if (balanceResult?.status !== "success") continue;
+
+    const balance = balanceResult.result as bigint;
     if (balance <= 0n) continue;
 
     const token = tokens[i]!;
+    const nameResult = results[resultOffset + 1];
+    const symbolResult = results[resultOffset + 2];
+    const decimalsResult = results[resultOffset + 3];
+
+    const verifiedName = nameResult?.status === "success" ? String(nameResult.result) : token.name;
+    const verifiedSymbol =
+      symbolResult?.status === "success" ? String(symbolResult.result) : token.symbol;
+    const verifiedDecimals =
+      decimalsResult?.status === "success" ? Number(decimalsResult.result) : token.decimals;
+    const verification =
+      nameResult?.status === "success" &&
+      symbolResult?.status === "success" &&
+      decimalsResult?.status === "success"
+        ? "verified"
+        : "unverified";
+
     balances.push({
-      token,
+      token: {
+        ...token,
+        name: verifiedName,
+        symbol: verifiedSymbol,
+        decimals: verifiedDecimals,
+        source: token.source ?? "curated",
+        verification,
+      },
       balance,
       logoUrls: getTokenLogoUrls(chainId, token.address),
     });
@@ -145,44 +189,23 @@ async function fetchErc20Balances(
 }
 
 export function fetchTokenBalances(chainId: number, address: Address): Promise<TokenWithBalance[]> {
-  const key = getCacheKey(chainId, address);
+  return (async () => {
+    const meta = chainMeta[chainId];
+    if (!meta) return [];
 
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) return Promise.resolve(cached.data);
+    const known = wellKnownTokens[chainId] ?? [];
 
-  const inflight = pending.get(key);
-  if (inflight) return inflight;
+    const [nativeToken, discovered] = await Promise.all([
+      fetchNativeTokenBalance(chainId, address),
+      discoverTokens(chainId, address).catch(() => [] as Erc20TokenInfo[]),
+    ]);
 
-  const request = (async () => {
-    try {
-      const meta = chainMeta[chainId];
-      if (!meta) return [];
+    const allTokens = mergeTokenLists(known, discovered);
+    const erc20Balances = await fetchErc20Balances(chainId, address, allTokens);
 
-      const known = wellKnownTokens[chainId] ?? [];
-
-      // Discover tokens via Blockscout in parallel with native balance
-      const [nativeToken, discovered] = await Promise.all([
-        fetchNativeTokenBalance(chainId, address).catch(() => null),
-        discoverTokens(chainId, address).catch(() => [] as Erc20TokenInfo[]),
-      ]);
-
-      const allTokens = mergeTokenLists(known, discovered);
-
-      const erc20Balances = await fetchErc20Balances(chainId, address, allTokens);
-
-      const data: TokenWithBalance[] = [];
-      if (nativeToken) data.push(nativeToken);
-      data.push(...erc20Balances);
-
-      cache.set(key, { data, timestamp: Date.now() });
-      return data;
-    } catch {
-      return [];
-    } finally {
-      pending.delete(key);
-    }
+    const data: TokenWithBalance[] = [];
+    if (nativeToken) data.push(nativeToken);
+    data.push(...erc20Balances);
+    return data;
   })();
-
-  pending.set(key, request);
-  return request;
 }

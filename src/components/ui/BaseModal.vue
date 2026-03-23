@@ -1,69 +1,67 @@
 <script setup lang="ts">
 import {
-  DialogRoot,
-  DialogPortal,
-  DialogOverlay,
-  DialogContent,
-  DialogTitle,
-  DialogClose,
-} from "reka-ui";
-import { X } from "lucide-vue-next";
+  DrawerRoot,
+  DrawerPortal,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "vaul-vue";
 
 defineProps<{
   title?: string;
+  description?: string;
 }>();
 
 const open = defineModel<boolean>({ default: false });
 </script>
 
 <template>
-  <DialogRoot v-model:open="open">
-    <DialogPortal>
-      <DialogOverlay class="dialog-overlay fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-      <DialogContent
+  <DrawerRoot v-model:open="open">
+    <DrawerPortal>
+      <DrawerOverlay class="drawer-overlay fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" />
+      <DrawerContent
         :aria-label="title ? undefined : 'Dialog'"
-        class="dialog-content fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-surface-200 bg-white p-6 shadow-xl dark:border-surface-700 dark:bg-surface-900"
+        class="drawer-content fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-[28px] border-t border-surface-200 bg-white px-5 pb-8 pt-3 shadow-2xl sm:px-6 dark:border-surface-700 dark:bg-surface-900"
       >
-        <div v-if="title" class="mb-4 flex items-center justify-between">
-          <DialogTitle class="text-lg font-semibold text-surface-900 dark:text-surface-100">
+        <div class="mb-3 flex justify-center">
+          <div class="h-1.5 w-12 rounded-full bg-surface-300 dark:bg-surface-600" />
+        </div>
+        <div v-if="title" class="mb-5">
+          <DrawerTitle class="text-lg font-semibold text-surface-900 dark:text-surface-100">
             {{ title }}
-          </DialogTitle>
-          <DialogClose
-            aria-label="Close modal"
-            class="rounded-lg p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-800 dark:hover:text-surface-300"
-          >
-            <X class="h-5 w-5" />
-          </DialogClose>
+          </DrawerTitle>
+          <DrawerDescription v-if="description" class="sr-only">
+            {{ description }}
+          </DrawerDescription>
         </div>
         <slot />
-      </DialogContent>
-    </DialogPortal>
-  </DialogRoot>
+      </DrawerContent>
+    </DrawerPortal>
+  </DrawerRoot>
 </template>
 
 <style scoped>
-.dialog-overlay {
+.drawer-overlay {
   animation: overlayIn 200ms ease;
 }
-.dialog-overlay[data-state="closed"] {
+.drawer-overlay[data-state="closed"] {
   animation: overlayOut 150ms ease forwards;
 }
-.dialog-content {
-  animation: contentShow 200ms var(--ease-out-expo);
+.drawer-content {
+  animation: sheetSlideUp 400ms cubic-bezier(0.32, 0.72, 0, 1);
 }
-.dialog-content[data-state="closed"] {
-  animation: contentHide 150ms ease forwards;
+.drawer-content[data-state="closed"] {
+  animation: sheetSlideDown 200ms var(--ease-out-expo) forwards;
 }
-@keyframes contentShow {
+@keyframes sheetSlideUp {
   from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translateY(100%);
   }
 }
-@keyframes contentHide {
+@keyframes sheetSlideDown {
   to {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translateY(100%);
   }
 }
 </style>

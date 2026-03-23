@@ -17,39 +17,40 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-03-18T20:00:00.000Z"));
 });
 
-async function renderTransactionList(options?: { transactions?: any[]; rejectFetch?: boolean }) {
+async function renderTransactionList(options?: {
+  transactions?: any[];
+  rejectFetch?: boolean;
+  chainId?: number;
+}) {
   const address = ref(ADDRESS);
-  const chainId = ref(8453);
-  const fetchBlockscoutTransactions = options?.rejectFetch
-    ? vi.fn().mockRejectedValue(new Error("boom"))
-    : vi.fn().mockResolvedValue(options?.transactions ?? []);
+  const chainId = ref(options?.chainId ?? 8453);
+  const refetch = vi.fn();
+  const status = ref(
+    options?.chainId === 56 ? "unsupported" : options?.rejectFetch ? "error" : "success",
+  );
+  const error = ref(options?.rejectFetch ? new Error("Could not load activity") : null);
 
   vi.doMock("@wagmi/vue", () => ({
     useConnection: () => ({ address }),
     useChainId: () => chainId,
   }));
 
-  vi.doMock("@vueuse/core", () => ({
-    useTimeoutPoll: (
-      callback: () => Promise<void>,
-      _interval: number,
-      options?: { immediateCallback?: boolean },
-    ) => {
-      if (options?.immediateCallback) {
-        void callback();
-      }
-    },
-  }));
-
-  vi.doMock("../../utils/blockscout", () => ({
-    fetchBlockscoutTransactions,
+  vi.doMock("../../composables/useWalletActivity", () => ({
+    useWalletActivity: () => ({
+      transactions: ref(options?.transactions ?? []),
+      status,
+      error,
+      isLoading: ref(false),
+      isUnsupported: ref(status.value === "unsupported"),
+      refetch,
+    }),
   }));
 
   const { default: TransactionList } = await import("./TransactionList.vue");
   const wrapper = mount(TransactionList);
   await flushPromises();
 
-  return { wrapper, fetchBlockscoutTransactions };
+  return { wrapper, refetch };
 }
 
 describe("TransactionList", () => {
@@ -104,11 +105,18 @@ describe("TransactionList", () => {
   });
 
   it("falls back to the empty state after fetch failures", async () => {
-    const { wrapper, fetchBlockscoutTransactions } = await renderTransactionList({
+    const { wrapper } = await renderTransactionList({
       rejectFetch: true,
     });
 
-    expect(fetchBlockscoutTransactions).toHaveBeenCalled();
-    expect(wrapper.text()).toContain("No activity yet");
+    expect(wrapper.text()).toContain("Could not load activity");
+  });
+
+  it("shows an unavailable state on chains without activity support", async () => {
+    const { wrapper } = await renderTransactionList({
+      chainId: 56,
+    });
+
+    expect(wrapper.text()).toContain("Activity unavailable on BNB Smart Chain");
   });
 });
