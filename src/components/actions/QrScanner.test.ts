@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("QrScanner", () => {
-  async function renderQrScanner(options?: { error?: string | null }) {
+  async function renderQrScanner(options?: { error?: string | null; isActive?: boolean }) {
     const start = vi.fn();
     const stop = vi.fn();
 
@@ -19,6 +19,7 @@ describe("QrScanner", () => {
         videoEl: ref<HTMLVideoElement | null>(null),
         start,
         stop,
+        isActive: ref(options?.isActive ?? false),
         error: ref(options?.error ?? null),
         onScan,
       }),
@@ -61,6 +62,14 @@ describe("QrScanner", () => {
       "Camera access was denied. Allow camera in your browser settings",
     );
     expect(document.body.textContent).toContain("Close");
+    wrapper.unmount();
+  });
+
+  it("keeps the video feed hidden until the scanner becomes active", async () => {
+    const { wrapper } = await renderQrScanner({ isActive: false });
+
+    expect(wrapper.get("video").classes()).toContain("opacity-0");
+
     wrapper.unmount();
   });
 });

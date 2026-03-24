@@ -8,7 +8,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const { videoEl, start, stop, error } = useQrScanner({
+const { videoEl, start, stop, isActive, error } = useQrScanner({
   onScan(result) {
     stop();
     emit("scanned", result);
@@ -32,7 +32,16 @@ function handleClose() {
       aria-label="QR code scanner"
     >
       <!-- Camera feed -->
-      <video ref="videoEl" class="h-full w-full object-cover" />
+      <video
+        ref="videoEl"
+        aria-hidden="true"
+        playsinline
+        muted
+        :class="[
+          'h-full w-full object-cover transition-opacity duration-150 motion-reduce:transition-none',
+          isActive ? 'opacity-100' : 'opacity-0',
+        ]"
+      />
 
       <!-- Viewfinder overlay -->
       <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
