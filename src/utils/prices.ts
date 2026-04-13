@@ -67,22 +67,21 @@ export async function fetchTokenPrices(
 
   const platformId = getCoinGeckoPlatformId(chainId);
   if (erc20Tokens.length > 0 && platformId) {
-    const addresses = erc20Tokens.map((token) => getAddress(token.address).toLowerCase());
-    requests.push(
-      fetch(
-        `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${addresses.join(",")}&vs_currencies=${currency}`,
-      )
-        .then(async (response) => {
-          if (!response.ok) return;
-          const data = (await response.json()) as Record<string, Record<string, number>>;
+    for (const token of erc20Tokens) {
+      const address = getAddress(token.address).toLowerCase();
 
-          for (const token of erc20Tokens) {
-            const checksum = getAddress(token.address).toLowerCase();
-            priceMap[getTokenKey(token)] = data[checksum]?.[currency] ?? null;
-          }
-        })
-        .catch(() => undefined),
-    );
+      requests.push(
+        fetch(
+          `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${address}&vs_currencies=${currency}`,
+        )
+          .then(async (response) => {
+            if (!response.ok) return;
+            const data = (await response.json()) as Record<string, Record<string, number>>;
+            priceMap[getTokenKey(token)] = data[address]?.[currency] ?? null;
+          })
+          .catch(() => undefined),
+      );
+    }
   }
 
   await Promise.all(requests);
