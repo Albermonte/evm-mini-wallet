@@ -29,7 +29,7 @@ describe("CoinGecko chain mapping", () => {
 });
 
 describe("fetchTokenPrices", () => {
-  it("fetches native and ERC-20 prices and normalizes lowercase address keys", async () => {
+  it("fetches native and ERC-20 prices with one contract request per token", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -45,6 +45,14 @@ describe("fetchTokenPrices", () => {
         json: async () => ({
           "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": {
             usd: 0.999893,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          "0x4200000000000000000000000000000000000006": {
+            usd: 2183.12,
           },
         }),
       });
@@ -69,6 +77,12 @@ describe("fetchTokenPrices", () => {
           name: "USD Coin",
           decimals: 6,
         },
+        {
+          address: "0x4200000000000000000000000000000000000006",
+          symbol: "WETH",
+          name: "Wrapped Ether",
+          decimals: 18,
+        },
       ],
       "usd",
     );
@@ -81,13 +95,18 @@ describe("fetchTokenPrices", () => {
       2,
       "https://api.coingecko.com/api/v3/simple/token_price/base?contract_addresses=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&vs_currencies=usd",
     );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "https://api.coingecko.com/api/v3/simple/token_price/base?contract_addresses=0x4200000000000000000000000000000000000006&vs_currencies=usd",
+    );
     expect(prices).toEqual({
       "native:ETH": 2183.51,
       "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": 0.999893,
+      "0x4200000000000000000000000000000000000006": 2183.12,
     });
   });
 
-  it("returns null prices when CoinGecko omits an asset", async () => {
+  it("keeps null only for ERC-20 tokens whose individual requests fail or return no data", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -95,8 +114,16 @@ describe("fetchTokenPrices", () => {
         json: async () => ({}),
       })
       .mockResolvedValueOnce({
-        ok: true,
+        ok: false,
         json: async () => ({}),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          "0x4444444444444444444444444444444444444444": {
+            usd: 12.34,
+          },
+        }),
       });
 
     vi.stubGlobal("fetch", fetchMock);
@@ -119,6 +146,12 @@ describe("fetchTokenPrices", () => {
           name: "Fake Token",
           decimals: 18,
         },
+        {
+          address: "0x4444444444444444444444444444444444444444",
+          symbol: "REAL",
+          name: "Real Token",
+          decimals: 18,
+        },
       ],
       "usd",
     );
@@ -126,6 +159,7 @@ describe("fetchTokenPrices", () => {
     expect(prices).toEqual({
       "native:ETH": null,
       "0x3333333333333333333333333333333333333333": null,
+      "0x4444444444444444444444444444444444444444": 12.34,
     });
   });
 });
