@@ -7,7 +7,7 @@ interface CachedPrices {
 
 const DB_NAME = "evm-mini-wallet";
 const STORE_NAME = "price-cache";
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -46,7 +46,7 @@ export async function getCachedPrices(
     });
 
     if (!entry) return null;
-    if (Date.now() - entry.fetchedAt > ONE_DAY_MS) return null;
+    if (Date.now() - entry.fetchedAt > TWELVE_HOURS_MS) return null;
     return entry.prices;
   } catch {
     return null;

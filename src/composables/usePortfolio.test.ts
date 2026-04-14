@@ -12,6 +12,7 @@ const FAKE_ADDRESS = "0x2222222222222222222222222222222222222222";
 afterEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
+  vi.doUnmock("../utils/price-cache");
 });
 
 async function renderPortfolio(options?: {
@@ -289,6 +290,28 @@ describe("usePortfolio", () => {
     });
 
     expect(portfolio.portfolioTotalFiat.value).toBe(2000);
+  });
+
+  it("refetches when the cache only contains null prices for current tokens", async () => {
+    const fetchTokenPrices = vi.fn().mockResolvedValue({
+      "native:ETH": 2000,
+      [USDC_ADDRESS]: 1,
+      [FAKE_ADDRESS]: 5,
+    });
+
+    vi.doMock("../utils/price-cache", () => ({
+      getCachedPrices: vi.fn().mockResolvedValue({
+        "native:ETH": null,
+        [USDC_ADDRESS]: null,
+        [FAKE_ADDRESS]: null,
+      }),
+      setCachedPrices: vi.fn().mockResolvedValue(undefined),
+    }));
+
+    const { portfolio } = await renderPortfolio({ fetchPrices: fetchTokenPrices });
+
+    expect(fetchTokenPrices).toHaveBeenCalledTimes(1);
+    expect(portfolio.portfolioTotalFiat.value).toBe(3022);
   });
 
   it("surfaces token fetch failures as an error state", async () => {

@@ -29,7 +29,7 @@ describe("CoinGecko chain mapping", () => {
 });
 
 describe("fetchTokenPrices", () => {
-  it("fetches native and ERC-20 prices with one contract request per token", async () => {
+  it("fetches ERC-20 prices with one contract address per request", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -99,6 +99,7 @@ describe("fetchTokenPrices", () => {
       3,
       "https://api.coingecko.com/api/v3/simple/token_price/base?contract_addresses=0x4200000000000000000000000000000000000006&vs_currencies=usd",
     );
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(prices).toEqual({
       "native:ETH": 2183.51,
       "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": 0.999893,
@@ -106,7 +107,7 @@ describe("fetchTokenPrices", () => {
     });
   });
 
-  it("keeps null only for ERC-20 tokens whose individual requests fail or return no data", async () => {
+  it("keeps null only for ERC-20 tokens whose single-address response has no data", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -114,7 +115,7 @@ describe("fetchTokenPrices", () => {
         json: async () => ({}),
       })
       .mockResolvedValueOnce({
-        ok: false,
+        ok: true,
         json: async () => ({}),
       })
       .mockResolvedValueOnce({

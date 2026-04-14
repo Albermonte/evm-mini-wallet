@@ -46,7 +46,10 @@ export function usePortfolio(options: { vsCurrency?: string } = {}) {
       const cached = await getCachedPrices(chainId.value, vsCurrency);
       if (cached) {
         const tokenKeys = tokenBalances.value.map((t) => getTokenKey(t.token));
-        if (tokenKeys.every((key) => key in cached)) return cached;
+        const hasCompleteCachedPrices = tokenKeys.every(
+          (key) => key in cached && cached[key] !== null,
+        );
+        if (hasCompleteCachedPrices) return cached;
       }
 
       const fresh = await fetchTokenPrices(
