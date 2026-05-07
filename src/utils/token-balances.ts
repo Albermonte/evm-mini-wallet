@@ -1,8 +1,8 @@
-import { type Address, type PublicClient, createPublicClient, http } from "viem";
+import { type Address, type PublicClient, createPublicClient, fallback, http } from "viem";
 import type { Erc20TokenInfo, TokenInfo } from "./tokens";
 import { erc20Abi } from "./tokens";
 import { getNativeTokenLogoUrls, getTokenLogoUrls } from "./token-logos";
-import { chainMeta, getChainCapabilities } from "./chains";
+import { chainMeta, getChainCapabilities, getChainRpcUrls } from "./chains";
 import { wellKnownTokens } from "./well-known-tokens";
 import { blockscoutApiUrls } from "./blockscout";
 
@@ -14,13 +14,20 @@ export interface TokenWithBalance {
 
 const clientCache = new Map<number, PublicClient>();
 
+function createTransport(chainId: number) {
+  const urls = getChainRpcUrls(chainId);
+  if (urls.length === 0) return http();
+  if (urls.length === 1) return http(urls[0]);
+  return fallback(urls.map((url) => http(url)));
+}
+
 function getPublicClient(chainId: number): PublicClient | null {
   const meta = chainMeta[chainId];
   if (!meta) return null;
 
   let client = clientCache.get(chainId);
   if (!client) {
-    client = createPublicClient({ chain: meta.chain, transport: http() });
+    client = createPublicClient({ chain: meta.chain, transport: createTransport(chainId) });
     clientCache.set(chainId, client);
   }
   return client;

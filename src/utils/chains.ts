@@ -104,6 +104,53 @@ export const chainMeta: Record<number, ChainMeta> = {
 
 export const DEFAULT_CHAIN_COLOR = "#627EEA";
 
+export const chainRpcUrls: Partial<Record<number, readonly string[]>> = {
+  [mainnet.id]: [
+    "https://ethereum-rpc.publicnode.com",
+    "https://eth.llamarpc.com",
+    "https://1rpc.io/eth",
+    "https://rpc.flashbots.net",
+  ],
+  [polygon.id]: [
+    "https://polygon-bor-rpc.publicnode.com",
+    "https://polygon.drpc.org",
+    "https://1rpc.io/matic",
+  ],
+  [arbitrum.id]: [
+    "https://arb1.arbitrum.io/rpc",
+    "https://arbitrum-one-rpc.publicnode.com",
+    "https://arbitrum.drpc.org",
+    "https://1rpc.io/arb",
+  ],
+  [optimism.id]: [
+    "https://mainnet.optimism.io",
+    "https://optimism-rpc.publicnode.com",
+    "https://optimism.drpc.org",
+    "https://1rpc.io/op",
+  ],
+  [base.id]: [
+    "https://mainnet.base.org",
+    "https://base-rpc.publicnode.com",
+    "https://base.llamarpc.com",
+    "https://base.drpc.org",
+    "https://1rpc.io/base",
+  ],
+  [bsc.id]: [
+    "https://bsc.publicnode.com",
+    "https://bsc-dataseed.bnbchain.org",
+    "https://bsc-dataseed1.bnbchain.org",
+  ],
+  [sepolia.id]: [
+    "https://ethereum-sepolia-rpc.publicnode.com",
+    "https://1rpc.io/sepolia",
+    "https://0xrpc.io/sep",
+  ],
+};
+
+export function getChainRpcUrls(chainId: number): readonly string[] {
+  return chainRpcUrls[chainId] ?? chainMeta[chainId]?.chain.rpcUrls.default.http ?? [];
+}
+
 export function getChainColor(chainId: number): string {
   return chainMeta[chainId]?.color ?? DEFAULT_CHAIN_COLOR;
 }

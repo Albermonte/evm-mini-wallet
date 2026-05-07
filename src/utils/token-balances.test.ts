@@ -68,6 +68,7 @@ describe("fetchTokenBalances", () => {
       return {
         ...actual,
         createPublicClient: vi.fn(() => ({ getBalance, multicall })),
+        fallback: vi.fn(),
         http: vi.fn(),
       };
     });
@@ -166,6 +167,7 @@ describe("fetchTokenBalances", () => {
       return {
         ...actual,
         createPublicClient: vi.fn(() => ({ getBalance, multicall })),
+        fallback: vi.fn(),
         http: vi.fn(),
       };
     });
@@ -226,6 +228,7 @@ describe("fetchTokenBalances", () => {
       return {
         ...actual,
         createPublicClient: vi.fn(() => ({ getBalance, multicall })),
+        fallback: vi.fn(),
         http: vi.fn(),
       };
     });
@@ -271,7 +274,7 @@ describe("fetchTokenBalances", () => {
     vi.doMock("./well-known-tokens", () => ({ wellKnownTokens: {} }));
     vi.doMock("viem", async () => {
       const actual = await vi.importActual<typeof import("viem")>("viem");
-      return { ...actual, createPublicClient: vi.fn(), http: vi.fn() };
+      return { ...actual, createPublicClient: vi.fn(), fallback: vi.fn(), http: vi.fn() };
     });
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("no")));
 

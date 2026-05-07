@@ -5,6 +5,7 @@ import {
   getChainCapabilities,
   getChainColor,
   getChainLogo,
+  getChainRpcUrls,
   getExplorerTxUrl,
   supportedChains,
 } from "./chains";
@@ -25,6 +26,17 @@ describe("chains helpers", () => {
   it("exports supported chains as a non-empty list", () => {
     expect(supportedChains.length).toBeGreaterThan(0);
     expect(supportedChains.map((chain) => chain.id)).toContain(8453);
+  });
+
+  it("overrides Ethereum's rate-limited default RPC", () => {
+    expect(getChainRpcUrls(1)).toContain("https://ethereum-rpc.publicnode.com");
+    expect(getChainRpcUrls(1)).not.toContain("https://eth.merkle.io");
+  });
+
+  it("provides explicit RPC fallbacks for every supported chain", () => {
+    for (const chain of supportedChains) {
+      expect(getChainRpcUrls(chain.id).length).toBeGreaterThanOrEqual(2);
+    }
   });
 
   it("describes per-chain data capabilities separately from support status", () => {
