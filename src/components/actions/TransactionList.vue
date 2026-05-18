@@ -35,6 +35,15 @@ function peerAddress(tx: Transaction): string {
 }
 
 function actionLabel(tx: Transaction): string {
+  if (tx.tokenTransfer) {
+    const m = tx.method?.toLowerCase() ?? "";
+    if (!m || m === "transfer" || m === "transferfrom" || m === "safetransferfrom") {
+      return isSent(tx) ? "Send" : "Receive";
+    }
+    if (m === "mint") return isSent(tx) ? "Send" : "Mint";
+    if (m.includes("burn")) return "Burn";
+    return isSent(tx) ? "Send" : "Receive";
+  }
   if (!tx.method) {
     return isSent(tx) ? "Send" : "Receive";
   }
@@ -140,6 +149,17 @@ function hasValue(tx: Transaction): boolean {
   return BigInt(tx.value) > 0n;
 }
 
+function formatTokenAmount(tx: Transaction): string {
+  const t = tx.tokenTransfer;
+  if (!t) return "";
+  const decimals = t.decimals ?? 0;
+  return formatBalance(BigInt(t.amount), decimals, 4);
+}
+
+function tokenSymbol(tx: Transaction): string {
+  return tx.tokenTransfer?.symbol ?? tx.tokenTransfer?.name ?? "Tokens";
+}
+
 function formatFee(fee: string): string {
   const formatted = formatUnits(BigInt(fee), 18);
   const num = Number.parseFloat(formatted);
@@ -165,20 +185,24 @@ function formatTime(timestamp: string): string {
 
 const nativeSymbol = computed(() => chainMeta[chainId.value]?.chain.nativeCurrency.symbol ?? "ETH");
 
-const recentTransactions = computed(() =>
-  transactions.value.slice(0, 10).map((tx) => {
+const displayTransactions = computed(() =>
+  transactions.value.map((tx) => {
     const label = actionLabel(tx);
     const sent = isSent(tx);
+    const isToken = Boolean(tx.tokenTransfer);
     const txHasValue = hasValue(tx);
+    const showAmount = isToken || txHasValue;
     return {
       tx,
       label,
       style: iconStyle(tx),
       sent,
-      txHasValue,
+      isToken,
+      showAmount,
       subtitle: subtitle(tx),
-      formattedValue: txHasValue ? formatValue(tx.value) : null,
-      formattedFee: !txHasValue ? formatFee(tx.fee) : null,
+      formattedAmount: isToken ? formatTokenAmount(tx) : txHasValue ? formatValue(tx.value) : null,
+      amountSymbol: isToken ? tokenSymbol(tx) : nativeSymbol.value,
+      formattedFee: !showAmount ? formatFee(tx.fee) : null,
       formattedTime: formatTime(tx.timestamp),
     };
   }),
@@ -211,7 +235,7 @@ const recentTransactions = computed(() =>
 
     <!-- Transaction list -->
     <div
-      v-else-if="status === 'success' && recentTransactions.length > 0"
+      v-else-if="status === 'success' && displayTransactions.length > 0"
       class="flex flex-col gap-1"
     >
       <a
@@ -221,20 +245,21 @@ const recentTransactions = computed(() =>
             label,
             style,
             sent,
-            txHasValue,
+            showAmount,
             subtitle: sub,
-            formattedValue,
+            formattedAmount,
+            amountSymbol,
             formattedFee,
             formattedTime,
           },
           i
-        ) in recentTransactions"
-        :key="tx.hash"
+        ) in displayTransactions"
+        :key="`${tx.hash}:${tx.logIndex ?? 'native'}`"
         :href="getExplorerTxUrl(chainId, tx.hash)"
         target="_blank"
         rel="noopener"
         class="tx-row flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800/50"
-        :style="{ '--stagger': i }"
+        :style="{ '--stagger': Math.min(i, 10) }"
       >
         <!-- Action icon -->
         <div
@@ -281,11 +306,11 @@ const recentTransactions = computed(() =>
         <!-- Value & time -->
         <div class="shrink-0 text-right">
           <p
-            v-if="txHasValue"
+            v-if="showAmount"
             class="text-sm font-medium"
             :class="sent ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'"
           >
-            {{ sent ? "-" : "+" }}{{ formattedValue }} {{ nativeSymbol }}
+            {{ sent ? "-" : "+" }}{{ formattedAmount }} {{ amountSymbol }}
           </p>
           <p
             v-else
