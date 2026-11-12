@@ -5,6 +5,7 @@ import { getNativeTokenLogoUrls, getTokenLogoUrls } from "./token-logos";
 import { chainMeta, getChainCapabilities, getChainRpcUrls } from "./chains";
 import { wellKnownTokens } from "./well-known-tokens";
 import { blockscoutApiUrls } from "./blockscout";
+import { discoverGlacierTokens, isGlacierChain } from "./glacier";
 
 export interface TokenWithBalance {
   token: TokenInfo;
@@ -50,6 +51,7 @@ interface BlockscoutDiscoveryResponse {
 
 async function discoverTokens(chainId: number, address: Address): Promise<Erc20TokenInfo[]> {
   if (!getChainCapabilities(chainId).tokenDiscovery) return [];
+  if (isGlacierChain(chainId)) return discoverGlacierTokens(chainId, address);
 
   const baseUrl = blockscoutApiUrls[chainId];
   if (!baseUrl) return [];

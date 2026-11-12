@@ -14,6 +14,7 @@ describe("CoinGecko chain mapping", () => {
     expect(getCoinGeckoPlatformId(137)).toBe("polygon-pos");
     expect(getCoinGeckoPlatformId(8453)).toBe("base");
     expect(getCoinGeckoPlatformId(56)).toBe("binance-smart-chain");
+    expect(getCoinGeckoPlatformId(43114)).toBe("avalanche");
     expect(getCoinGeckoPlatformId(11155111)).toBeNull();
   });
 
@@ -24,6 +25,7 @@ describe("CoinGecko chain mapping", () => {
     expect(getCoinGeckoNativeCoinId(10)).toBe("ethereum");
     expect(getCoinGeckoNativeCoinId(137)).toBe("polygon-ecosystem-token");
     expect(getCoinGeckoNativeCoinId(56)).toBe("binancecoin");
+    expect(getCoinGeckoNativeCoinId(43114)).toBe("avalanche-2");
     expect(getCoinGeckoNativeCoinId(11155111)).toBeNull();
   });
 });

@@ -1,5 +1,14 @@
 import type { Chain } from "@wagmi/vue/chains";
-import { mainnet, polygon, arbitrum, optimism, base, bsc, sepolia } from "@wagmi/vue/chains";
+import {
+  mainnet,
+  polygon,
+  arbitrum,
+  optimism,
+  base,
+  bsc,
+  avalanche,
+  sepolia,
+} from "@wagmi/vue/chains";
 import { getChainLogoUrl } from "./token-logos";
 
 interface ChainMeta {
@@ -88,6 +97,18 @@ export const chainMeta: Record<number, ChainMeta> = {
       pricing: true,
     },
   },
+  [avalanche.id]: {
+    chain: avalanche,
+    color: "#E84142",
+    explorerUrl: "https://snowtrace.io",
+    logo: getChainLogoUrl(avalanche.id)!,
+    capabilities: {
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    },
+  },
   [sepolia.id]: {
     chain: sepolia,
     color: "#627EEA",
@@ -139,6 +160,12 @@ export const chainRpcUrls: Partial<Record<number, readonly string[]>> = {
     "https://bsc.publicnode.com",
     "https://bsc-dataseed.bnbchain.org",
     "https://bsc-dataseed1.bnbchain.org",
+  ],
+  [avalanche.id]: [
+    "https://api.avax.network/ext/bc/C/rpc",
+    "https://avalanche-c-chain-rpc.publicnode.com",
+    "https://avalanche.drpc.org",
+    "https://1rpc.io/avax/c",
   ],
   [sepolia.id]: [
     "https://ethereum-sepolia-rpc.publicnode.com",

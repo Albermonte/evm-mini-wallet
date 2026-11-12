@@ -7,6 +7,7 @@ const trustWalletChains: Record<number, string> = {
   10: "optimism",
   8453: "base",
   56: "smartchain",
+  43114: "avalanchec",
 };
 
 export function getChainLogoUrl(chainId: number): string | undefined {

@@ -52,5 +52,17 @@ describe("chains helpers", () => {
       activity: false,
       pricing: true,
     });
+    expect(getChainCapabilities(43114)).toMatchObject({
+      balances: true,
+      tokenDiscovery: true,
+      activity: true,
+      pricing: true,
+    });
+  });
+
+  it("supports Avalanche C-Chain", () => {
+    expect(supportedChains.map((chain) => chain.id)).toContain(43114);
+    expect(getChainLogo(43114)).toContain("/blockchains/avalanchec/");
+    expect(getExplorerTxUrl(43114, "0xhash")).toBe("https://snowtrace.io/tx/0xhash");
   });
 });

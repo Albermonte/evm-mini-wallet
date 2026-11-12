@@ -262,4 +262,44 @@ export const wellKnownTokens: Record<number, Erc20TokenInfo[]> = {
       decimals: 18,
     },
   ],
+
+  // Avalanche C-Chain
+  43114: [
+    {
+      address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E" as Address,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+    },
+    {
+      address: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7" as Address,
+      symbol: "USDt",
+      name: "Tether USD",
+      decimals: 6,
+    },
+    {
+      address: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70" as Address,
+      symbol: "DAI.e",
+      name: "Dai Stablecoin",
+      decimals: 18,
+    },
+    {
+      address: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7" as Address,
+      symbol: "WAVAX",
+      name: "Wrapped AVAX",
+      decimals: 18,
+    },
+    {
+      address: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB" as Address,
+      symbol: "WETH.e",
+      name: "Wrapped Ether",
+      decimals: 18,
+    },
+    {
+      address: "0x152b9d0FdC40C096757F570A51E494bd4b943E50" as Address,
+      symbol: "BTC.b",
+      name: "Bitcoin",
+      decimals: 8,
+    },
+  ],
 };

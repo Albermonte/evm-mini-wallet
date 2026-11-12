@@ -9,6 +9,7 @@ const coinGeckoPlatformIds: Record<number, string> = {
   137: "polygon-pos",
   8453: "base",
   42161: "arbitrum-one",
+  43114: "avalanche",
 };
 
 const coinGeckoNativeCoinIds: Record<number, string> = {
@@ -18,6 +19,7 @@ const coinGeckoNativeCoinIds: Record<number, string> = {
   137: "polygon-ecosystem-token",
   8453: "ethereum",
   42161: "ethereum",
+  43114: "avalanche-2",
 };
 
 type PriceMap = Record<string, number | null>;

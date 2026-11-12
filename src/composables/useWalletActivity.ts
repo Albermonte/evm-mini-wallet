@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { useChainId, useConnection } from "@wagmi/vue";
 import { computed } from "vue";
 import { fetchBlockscoutTransactions } from "../utils/blockscout";
+import { fetchGlacierTransactions, isGlacierChain } from "../utils/glacier";
 import { UnsupportedChainFeatureError } from "../utils/errors";
 import { QUERY_KEYS } from "../utils/query-keys";
 
@@ -19,7 +20,9 @@ export function useWalletActivity() {
     retry: false,
     queryFn: async () => {
       if (!chainId.value || !address.value) return [];
-      return fetchBlockscoutTransactions(chainId.value, address.value);
+      return isGlacierChain(chainId.value)
+        ? fetchGlacierTransactions(chainId.value, address.value)
+        : fetchBlockscoutTransactions(chainId.value, address.value);
     },
     staleTime: 30_000,
     refetchInterval: 30_000,
