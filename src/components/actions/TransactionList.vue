@@ -183,6 +183,7 @@ function formatTime(timestamp: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+const chainName = computed(() => chainMeta[chainId.value]?.chain.name ?? "this network");
 const nativeSymbol = computed(() => chainMeta[chainId.value]?.chain.nativeCurrency.symbol ?? "ETH");
 
 const displayTransactions = computed(() =>
@@ -328,7 +329,7 @@ const displayTransactions = computed(() =>
 
     <EmptyState
       v-else-if="status === 'unsupported'"
-      title="Activity unavailable on BNB Smart Chain"
+      :title="`Activity unavailable on ${chainName}`"
       description="This network supports send and receive, but in-app activity history is not available yet"
     >
       <template #icon>
